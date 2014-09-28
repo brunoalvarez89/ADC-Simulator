@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical" >
+
+    <Button
+        android:id="@+id/BotonBuscarDispositivos"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Buscar Dispositivos" />
+
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Dispositivos Encontrados" />
+
+    <ListView
+        android:id="@+id/ListViewDispositivosNuevos"
+        android:layout_width="wrap_content"
+        android:layout_height="177dp"
+        android:focusable="false"
+        android:focusableInTouchMode="false" >
+
+    </ListView>
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Dispositivos Previamente Sincronizados" />
+   
+    <ListView
+        android:id="@+id/ListViewDispositivosViejos"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:focusable="false"
+		android:focusableInTouchMode="false" >
+    </ListView>
+
+</LinearLayout>
