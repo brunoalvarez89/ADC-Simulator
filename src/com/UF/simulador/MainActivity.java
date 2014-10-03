@@ -58,7 +58,11 @@ public class MainActivity extends ActionBarActivity {
 	// Array de canales
 	private ArrayList<Canal> mCanales = new ArrayList<Canal>();
 	// Cantidad de canales
+<<<<<<< HEAD
 	private int mCantCanales = 5;
+=======
+	private int mCantCanales = 3;
+>>>>>>> 1e602ed942b24f733d6b6326f6e67ad773c2e473
 	// Canal actual
 	private int mCanalActual = 0;
 	// Frecuencia de la señal
@@ -72,7 +76,7 @@ public class MainActivity extends ActionBarActivity {
 	// Amplitud de la señal
 	private double mAmplitud = 1;
 	// Resolución (en bits) del ADC
-	private int mBits = 14;
+	private int mBits = 12;
 	// Instancia de la clase
 	private Simulador mSimulador;
 	// Contador de paquetes simulados
@@ -138,9 +142,9 @@ public class MainActivity extends ActionBarActivity {
 	private byte[] mMensajeMuestras;	
 	
 	
-	/***********************************************************************************************
-	 * ENVÍO DE CANTIDAD DE CANALES  															   *
-	 **********************************************************************************************/
+	/*************************************************************************************
+	 * ENVÍO DE CANTIDAD DE CANALES  													 *
+	 ************************************************************************************/
 	private void enviarMensajeCanales() {
 		// Paso cantidad de canales a Byte
 		mMensajeCanales = intToByte(mCantCanales);
@@ -148,31 +152,38 @@ public class MainActivity extends ActionBarActivity {
 		mConexionBT.Escribir(mMensajeCanales);
 	}
 	
-	/**********************************************************************************************
-	 * ENVÍO DE DATOS DEL ADC 																	  *
-	 **********************************************************************************************/
+	/*************************************************************************************
+	 * ENVÍO DE DATOS DEL ADC 															 *
+	 ************************************************************************************/
 	// Método para enviar la información del ADC
 	private void enviarMensajeADC() {
 		// Contenido del paquete de LSB a MSB
-		// 1) Vmax y Vmin de cada canal (Son doubles => 2 voltajes * mCantCanales * 8 bytes)
+		// 1) Vmax y Vmin de cada canal (2 doubles por canal)
 		int bloqueVoltajes = 2*mCantCanales*8;
-		// 2) Cantidad de muestras por paquete (int => 4 bytes)
+		// 2) Frecuencia de muestreo de cada canal (1 double por canal)
+		int bloqueFs = mCantCanales*8;
+		// 3) Resolución de cada canal (1 entero por canal)
+		int bloqueResolucion = 4*mCantCanales;
+		// 4) Cantidad de muestras por paquete (1 entero)
 		int bloqueMuestras = 4;
-		// 3) Cantidad de bytes por muestra (int => 4 bytes)
+		// 5) Cantidad de bytes por muestra (1 entero)
 		int bloqueBytesPorMuestra = 4;
-		// 4) Frecuencia de muestreo (double => 8 bytes)
-		int bloqueFs = 8;
-		// 5) Resolución en Bits (int => 4 bytes)
-		int bloqueResolucion = 4;
 		
-		mCantBytesMensajeADC = bloqueVoltajes + bloqueMuestras + bloqueBytesPorMuestra + bloqueFs
-							   + bloqueResolucion ;
+		// Total
+		mCantBytesMensajeADC = bloqueVoltajes + 
+							   bloqueFs +
+							   bloqueResolucion +
+							   bloqueMuestras + 
+							   bloqueBytesPorMuestra;
+		
+		// Genero paquete
 		mMensajeADC = new byte[mCantBytesMensajeADC];
 		
-
+		// Lleno el paquete
+		// 1) Vmax y Vmin de cada canal
 		int inicio = 0;
-		int fin = 0;
-		// 1) Valores de voltaje por canal (8 bytes por valor)
+		int fin = bloqueVoltajes;
+		
 		byte[] voltaje = new byte[8];
 		for(int i=0; i<2*mCantCanales; i++) {
 			voltaje = doubleToByte(Math.pow(-1, i));
@@ -181,40 +192,48 @@ public class MainActivity extends ActionBarActivity {
 			}
 		}
 		
-		// 2) Cantidad de muestras por paquete (4 bytes)
-		inicio = (2*mCantCanales*8);
-		fin = inicio + 4;
+		// 2) Frecuencia de muestreo de cada canal
+		inicio = fin;
+		fin = inicio + bloqueFs;
+		
+		byte[] fs = new byte[8];
+		for(int i=0; i<mCantCanales; i++) {
+			fs = doubleToByte(mFs);
+			for(int j=i*8; j<(i+1)*8; j++) {
+				mMensajeADC[j + inicio] = fs[j-(8*i)];
+			}
+		}
+		
+		// 3) Resolución de cada canal
+		inicio = fin;
+		fin = inicio + bloqueResolucion;
+		
+		byte[] resolucion = new byte[4];
+		for(int i=0; i<mCantCanales; i++) {
+			resolucion = intToByte(mBits);
+			for(int j=i*4; j<(i+1)*4; j++) {
+				mMensajeADC[j + inicio] = resolucion[j-(4*i)];
+			}
+		}
+		
+		// 4) Cantidad de muestras por paquete
+		inicio = fin;
+		fin = inicio + bloqueMuestras;
+		
 		byte[] muestrasPorPaquete = new byte[4];
 		muestrasPorPaquete = intToByte(mCantMuestras);
 		for(int i=inicio; i<fin; i++) {
 			mMensajeADC[i] = muestrasPorPaquete[i-inicio];
 		}
 	
-		// 3) Cantidad de bytes por muestra (4 bytes)
+		// 5) Cantidad de bytes por muestra
 		inicio = fin;
-		fin = inicio + 4;
+		fin = inicio + bloqueBytesPorMuestra;
+		
 		byte[] bytesPorMuestra = new byte[4];
 		bytesPorMuestra = intToByte(mCantBytesPorMuestra);
 		for(int i=inicio; i<fin; i++) {
 			mMensajeADC[i] = bytesPorMuestra[i-inicio];
-		}
-		
-		// 4) Frecuencia de muestreo (8 bytes)
-		inicio = fin;
-		fin = inicio + 8;
-		byte[] fs = new byte[8];
-		fs = doubleToByte(mFs);
-		for(int i=inicio; i<fin; i++) {
-			mMensajeADC[i] = fs[i-inicio];
-		}
-		
-		// 5) Resolución (4 bytes)
-		inicio = fin;
-		fin = inicio + 4;
-		byte[] resolucion = new byte[4];
-		resolucion = intToByte(mBits);
-		for(int i=inicio; i<fin; i++) {
-			mMensajeADC[i] = resolucion[i-inicio];
 		}
 		
 		// Envío
