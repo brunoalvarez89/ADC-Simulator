@@ -64,8 +64,7 @@ public class Canal {
 		}
 		
 		try {
-			//Thread.sleep(mDelay);
-			Thread.sleep(10);
+			Thread.sleep(mDelay);
 		} catch (InterruptedException e1) {
 			e1.printStackTrace();
 		}
