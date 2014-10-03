@@ -58,11 +58,7 @@ public class MainActivity extends ActionBarActivity {
 	// Array de canales
 	private ArrayList<Canal> mCanales = new ArrayList<Canal>();
 	// Cantidad de canales
-<<<<<<< HEAD
 	private int mCantCanales = 5;
-=======
-	private int mCantCanales = 3;
->>>>>>> 1e602ed942b24f733d6b6326f6e67ad773c2e473
 	// Canal actual
 	private int mCanalActual = 0;
 	// Frecuencia de la señal
