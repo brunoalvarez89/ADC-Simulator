@@ -58,7 +58,7 @@ public class MainActivity extends ActionBarActivity {
 	// Array de canales
 	private ArrayList<Canal> mCanales = new ArrayList<Canal>();
 	// Cantidad de canales
-	private int mCantCanales = 1;
+	private int mCantCanales = 3;
 	// Canal actual
 	private int mCanalActual = 0;
 	// Frecuencia de la señal
@@ -397,7 +397,7 @@ public class MainActivity extends ActionBarActivity {
 			int tipo_senal;
 			if(i <= 5) tipo_senal = 1;
 				else tipo_senal = 1;
-			mSimulador.setSenal(tipo_senal, i);
+			mSimulador.setSenal(1, i);
 		}
 	}
 	
