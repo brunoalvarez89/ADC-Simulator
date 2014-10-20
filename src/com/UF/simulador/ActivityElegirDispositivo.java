@@ -209,7 +209,7 @@ public class ActivityElegirDispositivo extends Activity {
 	}
 	
 	// Sobrecargo el back navigation button
-		public void onBackPressed() {
+	public void onBackPressed() {
 			// Mato la Activity
 			finish();
 		}

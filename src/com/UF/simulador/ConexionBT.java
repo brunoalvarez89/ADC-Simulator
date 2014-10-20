@@ -184,11 +184,11 @@ public class ConexionBT {
 	}
 
 	// Metodo de escritura sobre el Socket
-	public synchronized void Escribir(byte[] out) {
+	public synchronized void write(byte[] out) {
 		//ThreadConexion temp;
 		synchronized(this) {
 			if (mEstado != ESTADO_CONECTADO) return;
-			mThreadConexion.Escribir(out);;
+			mThreadConexion.Escribir(out);
 		}
 		//temp.Escribir(out);
 	}
@@ -429,7 +429,7 @@ public class ConexionBT {
 		public void Escribir(byte[] buffer) {
 			try {
 				mmOutputStream.write(buffer);
-				mmOutputStream.flush();
+				//mmOutputStream.flush();
 			} catch (IOException e) {}
 		}
 		
