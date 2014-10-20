@@ -1,11 +1,13 @@
 package com.UF.simulador;
 
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 import android.os.Handler;
+import android.os.SystemClock;
 
-public class Simulador extends Thread {
-	private ArrayList<Canal> mCanales = new ArrayList<Canal>();
+public class AdcSimulator extends Thread {
+	private ArrayList<AdcChannel> mCanales = new ArrayList<AdcChannel>();
 	// Handler a MainActivity
 	private Handler mHandler;
 	// Valor de la muestra en short int
@@ -20,16 +22,23 @@ public class Simulador extends Thread {
 	private int mCanalActual = 0;
 	// Cantidad total de canales
 	private int mCantCanales;
+	// Estoy on-line?
+	private boolean mConnected = false;
 	
 	// Constructor de clase
-	Simulador(Handler mHandler, int mCantCanales, int mCantMuestras, double mFs, int mBits) {
+	AdcSimulator(Handler mHandler, int mCantCanales, int mCantMuestras, double mFs, int mBits) {
+		
 		this.mHandler = mHandler;
+		
 		this.mCantCanales = mCantCanales;
+		
 		mMuestras = new short[mCantMuestras];
+		
 		for(int i=0; i<mCantCanales; i++) {
-			Canal canal = new Canal(i, mFs, mBits, mCantMuestras);
+			AdcChannel canal = new AdcChannel(i, mFs, mBits, mCantMuestras);
 			mCanales.add(canal);
 		}
+		
 	}
 		
 	// Generación de muestras
@@ -38,14 +47,24 @@ public class Simulador extends Thread {
 		while(mRun) {			
 			
 			mMuestras = mCanales.get(mCanalActual).calcularMuestras();
-			
+						
 			mHandler.obtainMessage(MENSAJES_SIMULADOR.MENSAJE_MUESTRA.getValue(), -1, mCanalActual, mMuestras).sendToTarget();
 			
+			if(mConnected == true) {
+				//this.onPause();
+			}
+			
 			candadoPausa();
+			
+			try {
+				Thread.sleep(12);
+			} catch (InterruptedException e1) {
+				e1.printStackTrace();
+			}
 		}
 	}
 	
-	public void proximoCanal() {
+	public void nextChannel() {
 		mCanalActual++;
 		if(mCanalActual == mCantCanales) mCanalActual = 0;
 	}
@@ -71,13 +90,19 @@ public class Simulador extends Thread {
 	}
 	
 	private void candadoPausa() {
+		
 		synchronized(mPauseLock) {
+			
 			while(mPaused) {
+				
 				try {
 					mPauseLock.wait();
 				} catch (InterruptedException e) {}
+			
 			}
+		
 		}
+	
 	}
 		
 	public void onPause() {
@@ -101,4 +126,18 @@ public class Simulador extends Thread {
 		return mPaused;
 	}
 	
+	public AdcChannel getChannel(int index) {
+		return mCanales.get(index);
+	}
+	
+	public void setOnline(boolean mConnected) {
+		this.mConnected = mConnected;
+	}
+
+	
+	public void setInitialOffset(int offset, int channel) {
+		if(channel >= mCantCanales) return;
+		mCanales.get(channel).setInitialOffset(offset);
+		
+	}
 }

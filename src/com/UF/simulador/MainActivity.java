@@ -1,6 +1,10 @@
 package com.UF.simulador;
 
 import java.nio.ByteBuffer;
+<<<<<<< HEAD
+=======
+import java.text.DecimalFormat;
+>>>>>>> 19513300540cf80ca998c39bdd2088306daba68f
 import java.util.ArrayList;
 
 import android.annotation.SuppressLint;
@@ -18,6 +22,9 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemSelectedListener;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
@@ -28,20 +35,23 @@ import android.support.v7.app.ActionBarActivity;
 
 public class MainActivity extends ActionBarActivity {
 	
-	/*************
-	 * DEBUGGING *
-	 *************/
+/*****************************************************************************************
+* Inicio de atributos de clase				 										     *
+*****************************************************************************************/
+/*****************************************************************************************
+* Debugging					 														     *
+*****************************************************************************************/
     private static final String TAG = "Simulador_MainActivity";
     private static final boolean D = true;
     
-	/********************
-	 * INTERFAZ GRÁFICA *
-	 ********************/
-	private Button mButtonConectar;
+/*****************************************************************************************
+* Interfaz gráfica					 												     *
+*****************************************************************************************/
+	private Button mButtonConnect;
 	private Button mButtonAgregarCanal;
 	private Button mButtonRemoverCanal;
-	private Spinner mSpinnerCanales;
-	private Spinner mSpinnerSenales;
+	private Spinner mSpinnerChannel;
+	private Spinner mSpinnerSignal;
 	private SeekBar mSeekBarF0;
 	private SeekBar mSeekBarFs;
 	private SeekBar mSeekBarOffset;
@@ -49,15 +59,17 @@ public class MainActivity extends ActionBarActivity {
 	private TextView mTextViewFs;
 	private TextView mTextViewOffset;
 	private TextView mTextViewDelay;
-	protected TextView mTextViewEstado;
+	protected TextView mTextViewStatus;
+	private int mSelectedChannel;
+	private int mSelectedSignal;
 	
-	/****************************
-	 * PARÁMETROS DEL SIMULADOR *
-	 ****************************/
+/*****************************************************************************************
+* Parámetros del simulador	 														     *
+*****************************************************************************************/
 	// Array de canales
-	private ArrayList<Canal> mCanales = new ArrayList<Canal>();
+	private ArrayList<AdcChannel> mCanales = new ArrayList<AdcChannel>();
 	// Cantidad de canales
-	private int mCantCanales = 1;
+	private int mTotalChannels = 3;
 	// Canal actual
 	private int mCanalActual = 0;
 	// Frecuencia de la señal
@@ -69,11 +81,11 @@ public class MainActivity extends ActionBarActivity {
 	// Offset de la señal
 	private double mOffset = 0;
 	// Amplitud de la señal
-	private double mAmplitud = 1;
+	private double mAmplitude = 1;
 	// Resolución (en bits) del ADC
 	private int mBits = 12;
 	// Instancia de la clase
-	private Simulador mSimulador;
+	private AdcSimulator mAdcSimulator;
 	// Contador de paquetes simulados
 	private int mCantPaquetes = 0;
 	// Keys para las señales a transmitir
@@ -81,10 +93,13 @@ public class MainActivity extends ActionBarActivity {
 	private final int SENAL_SIERRA = 2;
 	private final int SENAL_CUADRADA = 3;
 	private final int SENAL_SECUENCIA = 4;
+	private double mMaxVoltage = 2;
+	private double mMinVoltage = -2;
 	
-	/****************************
-	 * VARIABLES DE LA CONEXIÓN *
-	 ****************************/
+	
+/*****************************************************************************************
+* Conexión Bluetooth		 														     *
+*****************************************************************************************/
 	// Request Code para onResult de ElegirDispositivo
 	protected int REQUEST_CODE_ELEGIR_DISPOSITIVO = 1;
 	// MAC adress del dispositivo con el cual me conecto
@@ -92,180 +107,203 @@ public class MainActivity extends ActionBarActivity {
 	// Adaptador Bluetooth local
 	private BluetoothAdapter mBluetoothAdapter;
 	// Objeto para manejar la conexion
-	private ConexionBT mConexionBT;
+	private ConexionBT mBluetoothConnection;
 	// Keys recibidas por el Handler
 	private static String mStringDispositivoRemoto;
 	// Dispositivo al cual me conecto
 	private BluetoothDevice  mDispositivoRemoto;	
-	
+	// Delay máximo admitido para generar un paquete de muestras
 	private double mDelayMax = 0.1;
-	
-	/**********************
-	 * MENSAJE DE CONTROL *
-	 **********************/
+
+/*****************************************************************************************
+* Paquetes Bluetooth		 														     *
+*****************************************************************************************/
+	/*************************************************************************************
+	* Mensaje de control		 														 *
+	*************************************************************************************/
 	// Cantidad de bytes de control
 	private int mCantBytesMensajeControl = 3;
 	// Mensaje de Control
 	private byte[] mMensajeControl = new byte[mCantBytesMensajeControl];
 	
-	/*******************************
-	 * MENSAJE DE CANT. DE CANALES *
-	 *******************************/
+	/*************************************************************************************
+	* Mensaje con la cantidad de canales 												 *
+	*************************************************************************************/
 	// Cantidad de Bytes del mensaje de canales. Es entero.
 	private int mCantBytesMensajeCanales = 4;
 	// Mensaje de cantidad de canales
 	private byte[] mMensajeCanales = new byte[mCantBytesMensajeCanales];
 	
-	/****************************
-	 * MENSAJE DE DATOS DEL ADC *
-	 ****************************/
+	/*************************************************************************************
+	* Mensaje con la información del ADC											     *
+	*************************************************************************************/
 	// Cantidad de Bytes del mensaje de datos del ADC.
-	private int mCantBytesMensajeADC;
+	private int mAdcMessageTotalBytes;
 	// Mensaje de datos del ADC
-	private byte[] mMensajeADC;
+	private byte[] mAdcMessage;
 	
-	/****************************
-	 * MENSAJE DE MUESTRAS *
-	 ****************************/
+	/*************************************************************************************
+	* Mensaje con la cantidad de muestras 											     *
+	*************************************************************************************/
 	// Cantidad de muestras
-	private int mCantMuestras;
+	private int mTotalSamples;
 	// Cantidad de bytes que voy a utilizar para cada muestra
 	private int mCantBytesPorMuestra = 2;
 	// Cantidad de bytes para indicar el canal (4 bytes -int- por defecto)
 	private int mCantBytesCanal = 4;
 	// Mensaje de muestras	
-	private byte[] mMensajeMuestras;	
+	private byte[] mSamplesMessage;	
 	
 	
-	/*************************************************************************************
-	 * ENVÍO DE CANTIDAD DE CANALES  													 *
-	 ************************************************************************************/
-	private void enviarMensajeCanales() {
-		// Paso cantidad de canales a Byte
-		mMensajeCanales = intToByte(mCantCanales);
-		// Envio
-		mConexionBT.Escribir(mMensajeCanales);
+/*****************************************************************************************
+* Inicio de métodos de clase				 										     *
+*****************************************************************************************/	
+/*****************************************************************************************
+* Paquetes Bluetooth				 												 	 *
+*****************************************************************************************/
+	private void setupControlMessage() {
+		for(int i=0; i<mCantBytesMensajeControl; i++) {
+		mMensajeControl[i] = '#';
+		}
+	}
+
+	private void sendControlMessage() {
+		mBluetoothConnection.write(mMensajeControl);
 	}
 	
-	/*************************************************************************************
-	 * ENVÍO DE DATOS DEL ADC 															 *
-	 ************************************************************************************/
-	// Método para enviar la información del ADC
-	private void enviarMensajeADC() {
+	private void sendChannelQtyMessage() {
+		// Paso cantidad de canales a Byte
+		mMensajeCanales = intToByte(mTotalChannels);
+		// Envio
+		mBluetoothConnection.write(mMensajeCanales);
+	}
+	
+	private void sendAdcMessage() {
 		// Contenido del paquete de LSB a MSB
 		// 1) Vmax y Vmin de cada canal (2 doubles por canal)
-		int bloqueVoltajes = 2*mCantCanales*8;
-		// 2) Frecuencia de muestreo de cada canal (1 double por canal)
-		int bloqueFs = mCantCanales*8;
-		// 3) Resolución de cada canal (1 entero por canal)
-		int bloqueResolucion = 4*mCantCanales;
-		// 4) Cantidad de muestras por paquete (1 entero)
-		int bloqueMuestras = 4;
-		// 5) Cantidad de bytes por muestra (1 entero)
-		int bloqueBytesPorMuestra = 4;
+		int voltageBlock = 2*mTotalChannels*8;
+		// 2) Amplitudes máximas y mínimas de cada canal (2 doubles por canal)
+		int amplitudeBlock = 2*mTotalChannels*8;
+		// 3) Frecuencia de muestreo de cada canal (1 double por canal)
+		int fsBlock = mTotalChannels*8;
+		// 4) Resolución de cada canal (1 entero por canal)
+		int resolutionBlock = 4*mTotalChannels;
+		// 5) Cantidad de muestras por paquete (1 entero)
+		int sampleQtyBlock = 4;
+		// 6) Cantidad de bytes por muestra (1 entero)
+		int bytesPerSampleBlock = 4;
 		
 		// Total
-		mCantBytesMensajeADC = bloqueVoltajes + 
-							   bloqueFs +
-							   bloqueResolucion +
-							   bloqueMuestras + 
-							   bloqueBytesPorMuestra;
+		mAdcMessageTotalBytes = voltageBlock + 
+							   amplitudeBlock +
+							   fsBlock +
+							   resolutionBlock +
+							   sampleQtyBlock + 
+							   bytesPerSampleBlock;
 		
 		// Genero paquete
-		mMensajeADC = new byte[mCantBytesMensajeADC];
+		mAdcMessage = new byte[mAdcMessageTotalBytes];
 		
-		// Lleno el paquete
 		// 1) Vmax y Vmin de cada canal
-		int inicio = 0;
-		int fin = bloqueVoltajes;
+		int start = 0;
+		int end = voltageBlock;
 		
-		byte[] voltaje = new byte[8];
-		for(int i=0; i<2*mCantCanales; i++) {
-			voltaje = doubleToByte(Math.pow(-1, i));
+		byte[] voltage = new byte[8];
+		for(int i=0; i<2*mTotalChannels; i++) {
+			double sign = Math.pow(-1, i);
+			voltage = doubleToByte(sign*mMaxVoltage);
 			for(int j=i*8; j<(i+1)*8; j++) {
-				mMensajeADC[j] = voltaje[j-(8*i)];
+				mAdcMessage[j] = voltage[j-(8*i)];
 			}
 		}
 		
-		// 2) Frecuencia de muestreo de cada canal
-		inicio = fin;
-		fin = inicio + bloqueFs;
+		// 2) Amax y Amin de cada canal
+		start = voltageBlock;
+		end = start + amplitudeBlock;
+		
+		byte[] amplitud = new byte[8];
+		for(int i = 0; i < 2*mTotalChannels; i++) {
+			amplitud = doubleToByte(Math.pow(-1, i));
+			for(int j=i*8; j<(i+1)*8; j++) {
+				mAdcMessage[j + start] = amplitud[j-(8*i)];
+			}
+		}
+		
+		// 3) Frecuencia de muestreo de cada canal
+		start = end;
+		end = start + fsBlock;
 		
 		byte[] fs = new byte[8];
-		for(int i=0; i<mCantCanales; i++) {
+		for(int i=0; i<mTotalChannels; i++) {
 			fs = doubleToByte(mFs);
 			for(int j=i*8; j<(i+1)*8; j++) {
-				mMensajeADC[j + inicio] = fs[j-(8*i)];
+				mAdcMessage[j + start] = fs[j-(8*i)];
 			}
 		}
 		
-		// 3) Resolución de cada canal
-		inicio = fin;
-		fin = inicio + bloqueResolucion;
+		// 4) Resolución de cada canal
+		start = end;
+		end = start + resolutionBlock;
 		
 		byte[] resolucion = new byte[4];
-		for(int i=0; i<mCantCanales; i++) {
+		for(int i=0; i<mTotalChannels; i++) {
 			resolucion = intToByte(mBits);
 			for(int j=i*4; j<(i+1)*4; j++) {
-				mMensajeADC[j + inicio] = resolucion[j-(4*i)];
+				mAdcMessage[j + start] = resolucion[j-(4*i)];
 			}
 		}
 		
-		// 4) Cantidad de muestras por paquete
-		inicio = fin;
-		fin = inicio + bloqueMuestras;
+		// 5) Cantidad de muestras por paquete
+		start = end;
+		end = start + sampleQtyBlock;
 		
 		byte[] muestrasPorPaquete = new byte[4];
-		muestrasPorPaquete = intToByte(mCantMuestras);
-		for(int i=inicio; i<fin; i++) {
-			mMensajeADC[i] = muestrasPorPaquete[i-inicio];
+		muestrasPorPaquete = intToByte(mTotalSamples);
+		for(int i=start; i<end; i++) {
+			mAdcMessage[i] = muestrasPorPaquete[i-start];
 		}
 	
-		// 5) Cantidad de bytes por muestra
-		inicio = fin;
-		fin = inicio + bloqueBytesPorMuestra;
+		// 6) Cantidad de bytes por muestra
+		start = end;
+		end = start + bytesPerSampleBlock;
 		
 		byte[] bytesPorMuestra = new byte[4];
 		bytesPorMuestra = intToByte(mCantBytesPorMuestra);
-		for(int i=inicio; i<fin; i++) {
-			mMensajeADC[i] = bytesPorMuestra[i-inicio];
+		for(int i=start; i<end; i++) {
+			mAdcMessage[i] = bytesPorMuestra[i-start];
 		}
 		
 		// Envío
-		mConexionBT.Escribir(mMensajeADC);
+		mBluetoothConnection.write(mAdcMessage);
 	}
 	
-
-	/**********************************************************************************************
-	 * ENVÍO DE MENSAJE DE CONTROL																  *
-	 **********************************************************************************************/
-	private void enviarMensajeControl() {
-		mConexionBT.Escribir(mMensajeControl);
-	}
-	
-	/**********************************************************************************************
-	 * ENVÍO DE MUESTRAS																		  *
-	 **********************************************************************************************/
-	private void enviarMuestras(short[] muestras, int canal) {
+	private void sendSamples(short[] samples, int adcChannel) {
+		
 		// Coloco nro de canal en el buffer
-		byte[] canal_byte = intToByte(canal);
-		mMensajeMuestras[0] = canal_byte[0];
-		mMensajeMuestras[1] = canal_byte[1];
-		mMensajeMuestras[2] = canal_byte[2];
-		mMensajeMuestras[3] = canal_byte[3];
+		byte[] canal_byte = intToByte(adcChannel);
+		mSamplesMessage[0] = canal_byte[0];
+		mSamplesMessage[1] = canal_byte[1];
+		mSamplesMessage[2] = canal_byte[2];
+		mSamplesMessage[3] = canal_byte[3];
+		
 		// Paso las muestras de short a byte (2 bytes por muestra)
-		for(int i=0; i<mCantMuestras; i++) {
+		for(int i = 0; i < mTotalSamples; i++) {
+			
 			for (int j = 0; j < 2; j++) {
-				mMensajeMuestras[4 + 2*i + j] = (byte)(muestras[i] >> (j * 8));
+				
+				mSamplesMessage[4 + 2*i + j] = (byte)(samples[i] >> (j * 8));
+			
 			}
+			
 		}
-		mConexionBT.Escribir(mMensajeMuestras);
+		
+		mBluetoothConnection.write(mSamplesMessage);
 	}
 	
 	
-	/**********************************************************************************************
-	 * HANDLER DEL THREAD DE SIMULACIÓN DE ADC 									 				  *
-	 **********************************************************************************************/
+/*****************************************************************************************
+* Simulación de muestras									 				  			 *
+*****************************************************************************************/
 	// Handler que va y viene del Thread del Simulador
 	@SuppressLint("HandlerLeak")
 	private final Handler mHandlerSimulador = new Handler() {
@@ -277,29 +315,20 @@ public class MainActivity extends ActionBarActivity {
 		switch (mensaje) {
 		
 			case MENSAJE_MUESTRA:
-				// Pauseo la generación de muestras
-				mSimulador.onPause();
-				// Obtengo canal
-				int canal = msg.arg2;
-				// Levanto el array con las muestras generadas
-				short[] muestras = (short[]) msg.obj;
-				// Envío mensaje de control
-				// Envío muestras
-				//if(mCantPaquetes < 100) { 
-				if(mConexionBT != null) {
-					enviarMensajeControl();
-					enviarMuestras(muestras, canal);
-					SystemClock.sleep(1);
-					mSimulador.proximoCanal();
+
+				short[] samples = (short[]) msg.obj;
+				int channel = msg.arg2;
+
+				if(mBluetoothConnection != null) {
+					sendControlMessage();
+					sendSamples(samples, channel);
 				}
-				//}
-				// Resumo la generación de muestras con el próximo canal
-				// Log
-				//for(int i=0; i<mBufferedOutput.length; i++) {
-					//if (D) Log.d(TAG, "Paquete nº "+ mCantPaquetes + ": " + mBufferedOutput[i]);
-				//}
+				
 				mCantPaquetes++;
-				mSimulador.onResume();
+				
+				mAdcSimulator.nextChannel();
+				//mAdcSimulator.onResume();
+				
 				break;
 		
 			default: 
@@ -307,12 +336,59 @@ public class MainActivity extends ActionBarActivity {
 			}
 		}
 	};
+
+	private void setupAdcSimulator() {
+
+		mTotalSamples = (int) (mDelayMax / (mTs * mTotalChannels));
+		mSamplesMessage = new byte[mCantBytesCanal + mCantBytesPorMuestra*mTotalSamples];
+		mAdcSimulator = new AdcSimulator(mHandlerSimulador, mTotalChannels, mTotalSamples, mFs, mBits);
+		
+		for(int i = 0; i < mTotalChannels; i++) {
+			
+			mAdcSimulator.setAmplitud(1, i);
+			mAdcSimulator.setF0(1, i);
+			mAdcSimulator.setInitialOffset(1, i);
+			mAdcSimulator.setSenal(i+1, i);
+			
+		}
+		
+	}
+
+	private void startAdcSimulator() {
+		
+		mAdcSimulator.setOnline(true);
+		mAdcSimulator.setRunning(true);
+		mAdcSimulator.start();
 	
+	}
 	
-	/**********************************************************************************************
-	 * HANDLER DEL THREAD DE CONEXIÓN BLUETOOTH													  *
-	 **********************************************************************************************/
-	@SuppressLint("HandlerLeak")
+	private void stopAdcSimulator() {
+		
+		if (mAdcSimulator != null) { 
+			
+			boolean retry = true;
+			
+			mAdcSimulator.setRunning(false);
+			
+			while(retry) {
+				
+				try {
+					
+					mAdcSimulator.join();
+					retry = false;
+				
+				} catch (InterruptedException e) {}
+			
+			}
+			
+		}
+		
+	}
+
+	
+/*****************************************************************************************
+* Conexión Bluetooth		 														     *
+*****************************************************************************************/
 	private final Handler mHandlerConexionBT = new Handler() {
 		@Override
 		public void handleMessage(Message msg) {
@@ -323,26 +399,27 @@ public class MainActivity extends ActionBarActivity {
 			
 				// Estoy buscando al dispositivo
 				case MENSAJE_BUSCANDO: 
-					mTextViewEstado.setText("Conectando...");
+					mTextViewStatus.setText("Conectando...");
 					break;
 			
 				// Me conecte
 				case MENSAJE_CONECTADO: 
-					setupSimulador();
-					setupMensajeControl();
-					SystemClock.sleep(1);
-					enviarMensajeControl();
-					enviarMensajeCanales();
-					//SystemClock.sleep(1000);
-					enviarMensajeControl();
-					//SystemClock.sleep(100);
-					enviarMensajeADC();
-					//SystemClock.sleep(1000);
 					
-					mTextViewEstado.setText("Conectado con " + mStringDispositivoRemoto + ".");
-					setButtonDesconectar();
-					mSimulador.setRunning(true);
-					mSimulador.start();
+					setupAdcSimulator();
+					setupControlMessage();
+					
+					sendControlMessage();
+					sendChannelQtyMessage();
+					
+					sendControlMessage();
+					sendAdcMessage();
+					
+					mTextViewStatus.setText("Conectado con " + mStringDispositivoRemoto + ".");
+					
+					setButtonDisconnect();
+					
+					startAdcSimulator();
+					
 					break;
 				
 				// Con quien me conecte?	
@@ -352,26 +429,26 @@ public class MainActivity extends ActionBarActivity {
 			
 				// Perdi la conexion
 				case MENSAJE_CONEXION_PERDIDA:
-					mTextViewEstado.setText("Conexion perdida.");
-					if(mSimulador != null) stopThreadSimulador();
-					if(mConexionBT != null) stopThreadConexion();
-					setButtonConectar();
+					mTextViewStatus.setText("Conexion perdida.");
+					if(mAdcSimulator != null) stopAdcSimulator();
+					if(mBluetoothConnection != null) stopBluetoothConnection();
+					setButtonConnnect();
 					break;
 					
 				case MENSAJE_LEER:
 					// Paso a ByteBuffer el array recibido
 					Byte caracterControl = (Byte) msg.obj;
 					
-					if(checkCantCanalesOK(caracterControl) == true) {
-						enviarMensajeControl();
-						enviarMensajeADC();
+					if(checkChannelQtyMessage(caracterControl) == true) {
+						sendControlMessage();
+						sendAdcMessage();
 					}
 					
-					if(checkInfoAdcOK(caracterControl) == true) { 
+					if(checkAdcMessage(caracterControl) == true) { 
 						//mConexionBT.setRun();
 						SystemClock.sleep(200);
-						mSimulador.setRunning(true);
-						mSimulador.start();
+						mAdcSimulator.setRunning(true);
+						mAdcSimulator.start();
 					}	
 					break;
 			
@@ -381,60 +458,273 @@ public class MainActivity extends ActionBarActivity {
 		}
 	};//mHandlerConexion
 	
-	// Configuro simulador
-	public void setupSimulador() {
-		// Empiezo a simular
-		// Simulador(Handler mHandler, int mCantCanales, int mCantMuestras, double mFs, int mBits)
-		mCantMuestras = (int) (mDelayMax / (mTs * mCantCanales));
-		mMensajeMuestras = new byte[mCantBytesCanal + mCantBytesPorMuestra*mCantMuestras];
-		mSimulador = new Simulador(mHandlerSimulador, mCantCanales, mCantMuestras, mFs, mBits);
-		for(int i=0; i<mCantCanales; i++) {
-			mSimulador.setAmplitud(1, i);
-			mSimulador.setF0(1, i);
-			mSimulador.setOffset(1, i);
-			
-			int tipo_senal;
-			if(i <= 5) tipo_senal = 1;
-				else tipo_senal = 1;
-			mSimulador.setSenal(tipo_senal, i);
-		}
-	}
-	
-	private boolean checkCantCanalesOK(Byte caracterControl) {
+	private boolean checkChannelQtyMessage(Byte caracterControl) {
 		if(caracterControl == '&') {
 			Toast.makeText(getApplicationContext(), "Canales configurados.", Toast.LENGTH_LONG).show();
 			return true;
 		} else return false;
 	}
 	
-	private boolean checkInfoAdcOK(Byte caracterControl) {
+	private boolean checkAdcMessage(Byte caracterControl) {
 		if(caracterControl == '$') { 
 			Toast.makeText(getApplicationContext(), "Visualización configurada.", Toast.LENGTH_LONG).show();
 			return true;
 		} else return false;
 	}
+
+	public void stopBluetoothConnection() {
+		if (mBluetoothConnection != null) mBluetoothConnection.stop();
+	}
+
+	private void setupConexion() {
+		// Inicializo Adapter Bluetooth
+		mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+		// Instancio conexión
+		mBluetoothConnection = new ConexionBT(mHandlerConexionBT);
+	}	
 	
-	// Método para pasar de double a byte
+
+/*****************************************************************************************
+* Conversión de tipos de datos														     *
+*****************************************************************************************/
 	private byte[] doubleToByte(double mDouble) {
 		byte[] output = new byte[8];
 		ByteBuffer.wrap(output).putDouble(mDouble);
 		return output;
 	}
 	
-	// Método para pasar de int a byte
 	private byte[] intToByte(int mInt) {
 		return  ByteBuffer.allocate(4).putInt(mInt).array();
 	}
 	
-	private void setupMensajeControl() {
-		for(int i=0; i<mCantBytesMensajeControl; i++) {
-		mMensajeControl[i] = '#';
-		}
+	
+/*****************************************************************************************
+* Interfaz gráfica																	     *
+*****************************************************************************************/
+	private void setupUI() {
+		// Inflo ButtonConectar
+<<<<<<< HEAD
+		mButtonConectar = (Button) findViewById(R.id.buttonConectar);
+=======
+		mButtonConnect = (Button) findViewById(R.id.buttonConectar);
+		
+>>>>>>> 19513300540cf80ca998c39bdd2088306daba68f
+		// Inflo SpinnerCanales
+		mSpinnerChannel = (Spinner) findViewById(R.id.spinnerCanales);
+		setChannelSpinnerListener();
+		populateChannelSpinner();
+		
+		// Inflo SpinnerSenales
+		mSpinnerSignal = (Spinner) findViewById(R.id.spinnerSenales);
+		setSignalSpinnerListener();
+		populateSignalSpinner();
+	
+		// Inflo TextViewEstado
+		mTextViewStatus = (TextView) findViewById(R.id.textViewEstado);
+		
+		// Inflo TextViewF0
+		mTextViewF0 = (TextView) findViewById(R.id.textViewF0);
+		
+		// Inflo TextViewBits
+		mTextViewOffset = (TextView) findViewById(R.id.textViewOffset);
+		
+		// Inflo TextViewDelay
+		mTextViewDelay = (TextView) findViewById(R.id.textViewDelay);
+		
+		// Inflo SeekBarF0
+		mSeekBarF0 = (SeekBar) findViewById(R.id.seekBarF0);
+		
+		// Inflo SeekBarOffset
+		mSeekBarOffset = (SeekBar) findViewById(R.id.seekBarOffset);
+
+		// Seteo botón de conexión
+		setButtonConnnect();
+		
+		// Seteo Listener SeekBarF0
+		setSeekBarF0Listener();
+           
+		// Seteo Listener SeekBarOffset
+		setSeekBarOffsetListener();
+		
 	}
 	
-	/**********************************************************************************************
-	 * THIS.ACTIVITY ON CREATE																	  *
-	 **********************************************************************************************/
+	// mButtonConectar = Conectar
+	private void setButtonConnnect() {
+		mButtonConnect.setText("Conectar");
+		mButtonConnect.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				Intent intent = new Intent(getApplicationContext(), ActivityElegirDispositivo.class);
+				intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+				startActivityForResult(intent, REQUEST_CODE_ELEGIR_DISPOSITIVO);
+			}
+		});
+	}
+	
+	// mButtonConectar = Desconectar
+	private void setButtonDisconnect() {
+		
+		mButtonConnect.setText("Desconectar");
+		
+		mButtonConnect.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				
+				mBluetoothConnection.stop();
+				mAdcSimulator.setOnline(false);
+				mAdcSimulator.onResume();
+				setButtonConnnect();
+			
+			}
+		
+		});
+	
+	}
+	
+	private void populateChannelSpinner() {
+		
+		ArrayList<String> channels = new ArrayList<String>();
+	    
+		for (int i = 0; i < mTotalChannels; i++) {
+	        channels.add(Integer.toString(i+1));
+	    }
+	   
+		ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, channels);
+
+	    mSpinnerChannel.setAdapter(arrayAdapter);
+	    
+	}
+	
+	private void populateSignalSpinner() {
+		
+		ArrayList<String> signals = new ArrayList<String>();
+		
+		signals.add("Senoidal");
+		signals.add("Dientes de Sierra");
+	    signals.add("Cuadrada");
+	    
+	    ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, signals);
+	    
+	    mSpinnerSignal.setAdapter(arrayAdapter);
+	}
+	
+	private void setChannelSpinnerListener() {
+		
+		mSpinnerChannel.setOnItemSelectedListener(new OnItemSelectedListener() {
+			
+			@Override
+			public void onItemSelected(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
+				
+				mSelectedChannel = arg2;
+				
+				if(mAdcSimulator != null) {
+					
+					AdcChannel selectedChannel = mAdcSimulator.getChannel(mSelectedChannel);
+					
+					int offset = (int) (selectedChannel.getOffset() + 99);
+					mSeekBarOffset.setProgress(offset);
+					
+					int f0 = (int) selectedChannel.getF0();
+					mSeekBarF0.setProgress(f0);
+					
+					int signal = selectedChannel.getSignal();
+					mSpinnerSignal.setSelection(signal - 1, true);
+				
+				}
+			}
+
+			@Override
+			public void onNothingSelected(AdapterView<?> arg0) {
+				// TODO Auto-generated method stub	
+			}
+			
+		});
+		
+	}
+	
+	private void setSignalSpinnerListener() {
+		
+		mSpinnerSignal.setOnItemSelectedListener(new OnItemSelectedListener() {
+			
+			@Override
+			public void onItemSelected(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
+
+				mSelectedSignal = arg2 + 1;
+				
+				if(mAdcSimulator != null) {
+					AdcChannel selectedChannel = mAdcSimulator.getChannel(mSelectedChannel);
+					selectedChannel.setSenal(mSelectedSignal);
+				}
+			}
+
+			@Override
+			public void onNothingSelected(AdapterView<?> arg0) {
+				// TODO Auto-generated method stub	
+			}
+			
+		});
+	
+	}
+
+	private void setSeekBarF0Listener() {
+		
+		mSeekBarF0.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {	
+            
+			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                
+				if(mAdcSimulator != null) { 
+                	AdcChannel selectedChannel = mAdcSimulator.getChannel(mSelectedChannel);
+                	selectedChannel.setF0((double)progress);
+                	mTextViewF0.setText("Frecuencia de la Señal (Hz): " + selectedChannel.getF0());
+                }
+				
+            }
+           
+			public void onStartTrackingTouch(SeekBar seekBar) {}
+            
+			public void onStopTrackingTouch(SeekBar seekBar) {}
+        
+		});
+
+	}
+	
+	private void setSeekBarOffsetListener() {
+		
+		mSeekBarOffset.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
+			
+			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                
+				if(mAdcSimulator != null) {
+					
+					AdcChannel selectedChannel = mAdcSimulator.getChannel(mSelectedChannel);
+                	selectedChannel.setOffset((progress - 99));
+                	
+                	// Actualizo Label de Zoom X
+    				DecimalFormat df = new DecimalFormat();
+    				df.setMaximumFractionDigits(1);
+    				
+    				double newOffset = selectedChannel.getOffset() - selectedChannel.getAmplitude();
+    				df.format(newOffset);
+    				
+                	mTextViewOffset.setText("Offset: " + df.format(newOffset));
+                
+				}
+				
+            }
+            
+			public void onStartTrackingTouch(SeekBar seekBar) {}
+            
+			public void onStopTrackingTouch(SeekBar seekBar) {}
+       
+		});
+	
+	}
+
+
+/*****************************************************************************************
+* Ciclo de vida de la activity														     *
+*****************************************************************************************/
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -448,168 +738,27 @@ public class MainActivity extends ActionBarActivity {
 	    this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 	}
 		
-	/**********************************************************************************************
-	 * THIS.ACTIVITY ON START 																	  *
-	 **********************************************************************************************/
 	@Override
 	public synchronized void onStart() {
 		super.onStart();
 		// Si es la primera vez que ejecuto la Activity, configuro el simulador
-		if(mConexionBT == null) {
+		if(mBluetoothConnection == null) {
 			setupUI();
 			setupConexion();
 		}
 	}
 		
-	/**********************************************************************************************
-	 * THIS.ACTIVITY ON DESTROY																  *
-	 **********************************************************************************************/
 	@Override
 	public synchronized void onDestroy() {
 		super.onDestroy();
-		stopThreadConexion();
-		stopThreadSimulador();
+		stopBluetoothConnection();
+		stopAdcSimulator();
 	}
-		
-	public void stopThreadConexion() {
-		if (mConexionBT != null) mConexionBT.stop();
-	}
-		
-	public void stopThreadSimulador() {
-		if (mSimulador != null) { 
-			boolean retry = true;
-			mSimulador.setRunning(false);
-			while(retry) {
-				try {
-					mSimulador.join();
-					retry = false;
-				} catch (InterruptedException e) {}
-			}
-		}
-	}
-		
-	// Metodo que evita que la Activity se destruya al apretar atras
-	public void onBackPressed() {
+
+	public synchronized void onBackPressed() {
 	    moveTaskToBack(true);
 	}
 	
-	// Configuro conexión BT
-	private void setupConexion() {
-		// Inicializo Adapter Bluetooth
-		mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-		// Instancio conexión
-		mConexionBT = new ConexionBT(mHandlerConexionBT);
-	}
-	// Configuro UI
-	private void setupUI() {
-		// Inflo ButtonConectar
-		mButtonConectar = (Button) findViewById(R.id.buttonConectar);
-		// Inflo SpinnerCanales
-		mSpinnerCanales = (Spinner) findViewById(R.id.spinnerCanales);
-		// Inflo SpinnerSenales
-		mSpinnerSenales = (Spinner) findViewById(R.id.spinnerSenales);
-		// Inflo TextViewEstado
-		mTextViewEstado = (TextView) findViewById(R.id.textViewEstado);
-		// Inflo TextViewF0
-		mTextViewF0 = (TextView) findViewById(R.id.textViewF0);
-		// Inflo TextViewFs
-		mTextViewFs = (TextView) findViewById(R.id.textViewFs);
-		// Inflo TextViewBits
-		mTextViewOffset = (TextView) findViewById(R.id.textViewOffset);
-		// Inflo TextViewDelay
-		mTextViewDelay = (TextView) findViewById(R.id.textViewDelay);
-		// Inflo SeekBarF0
-		mSeekBarF0 = (SeekBar) findViewById(R.id.seekBarF0);
-		// Inflo SeekBarFs
-		mSeekBarFs = (SeekBar) findViewById(R.id.seekBarFs);
-		// Inflo SeekBarBits
-		mSeekBarOffset = (SeekBar) findViewById(R.id.seekBarOffset);
-
-		// Seteo botón de conexión
-		setButtonConectar();
-		
-		// Seteo Listener buttonAgregarCanal
-		mButtonAgregarCanal.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) { 
-				if(mSimulador != null) { 
-					//agregarCanal();
-				}
-			}
-		});
-		// Seteo Listener buttonRemoverCanal
-		mButtonRemoverCanal.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) { 
-				if(mSimulador != null) {
-					//removerCanal() 
-				}
-			}
-		});
-		
-		// Seteo Listener SeekBarF0
-		mSeekBarF0.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {	
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser){
-                if(mSimulador != null) { 
-                	//mSimulador.setF0((double)progress);
-                	//mTextViewF0.setText("Frecuencia de la Señal (Hz): " + mSimulador.getF0());
-                }
-            }
-            public void onStartTrackingTouch(SeekBar seekBar) {}
-            public void onStopTrackingTouch(SeekBar seekBar) {}
-        });
-		// Seteo Listener SeekBarFs
-		mSeekBarFs.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
-			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if(mSimulador != null) { 
-                	//mSimulador.setFs((double)progress+100);
-                	//mTextViewFs.setText("Frecuencia de Muestreo (Hz): " + mSimulador.getFs());
-                	//mTextViewDelay.setText("" + mSimulador.getDelay());
-                }
-            }
-			public void onStartTrackingTouch(SeekBar seekBar) {}
-			public void onStopTrackingTouch(SeekBar seekBar) {}
-        });
-		// Seteo Listener SeekBarOffset
-		mSeekBarOffset.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
-			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser){
-                if(mSimulador != null) { 
-                	//mSimulador.setOffset((progress - 99)*0.05);
-                	//mTextViewOffset.setText("Offset: " + (mSimulador.getOffset()  
-                	//						           -  mSimulador.getAmplitud()));
-                }
-            }
-            public void onStartTrackingTouch(SeekBar seekBar) {}
-            public void onStopTrackingTouch(SeekBar seekBar) {}
-        });
-	}
-	
-	// mButtonConectar = Conectar
-	private void setButtonConectar() {
-		mButtonConectar.setText("Conectar");
-		mButtonConectar.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				Intent intent = new Intent(getApplicationContext(), ActivityElegirDispositivo.class);
-				intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-				startActivityForResult(intent, REQUEST_CODE_ELEGIR_DISPOSITIVO);
-			}
-		});
-	}
-	
-	// mButtonConectar = Desconectar
-	private void setButtonDesconectar() {
-		mButtonConectar.setText("Desconectar");
-		mButtonConectar.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				mConexionBT.stop();
-				setButtonConectar();
-			}
-		});
-	}
-	
-	// this.Activity onActivityResult()
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		// Si vengo de seleccion de dispositivo a conectar
 		if (requestCode == REQUEST_CODE_ELEGIR_DISPOSITIVO) {
@@ -622,7 +771,7 @@ public class MainActivity extends ActionBarActivity {
 					// Obtengo objeto de tipo BluetoothDevice remoto
 					mDispositivoRemoto = mBluetoothAdapter.getRemoteDevice(mMAC);
 					// Intento conectarme con DispositivoRemoto
-					mConexionBT.soyCliente(mDispositivoRemoto);
+					mBluetoothConnection.soyCliente(mDispositivoRemoto);
 					// Inicializo TextViews y SeekBars
 					//mSeekBarF0.setProgress((int)mF0);
 					//mSeekBarFs.setProgress((int)mFs);
@@ -639,7 +788,11 @@ public class MainActivity extends ActionBarActivity {
 			}
         }	
     }
+
 	
+/*****************************************************************************************
+* Otros métodos																		     *
+*****************************************************************************************/	
 	// Basura que necesitan las progessbar para funcionar
 	public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {}
 	public void onStartTrackingTouch(SeekBar seekBar) {}
