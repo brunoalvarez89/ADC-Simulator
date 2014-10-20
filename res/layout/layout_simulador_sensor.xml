@@ -36,22 +36,6 @@
             android:layout_gravity="center"
             android:layout_weight="0.51" />
 
-        <Button
-            android:id="@+id/buttonAgregarCanal"
-            style="?android:attr/buttonStyleSmall"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:text="+" />
-
-        <Button
-            android:id="@+id/buttonRemoverCanal"
-            style="?android:attr/buttonStyleSmall"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:text="-" />
-
     </LinearLayout>
     
     <LinearLayout

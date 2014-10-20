@@ -1,7 +1,6 @@
 package com.UF.simulador;
 
 import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 
 import android.annotation.SuppressLint;
@@ -505,10 +504,6 @@ public class MainActivity extends ActionBarActivity {
 	private void setupUI() {
 		// Inflo ButtonConectar
 		mButtonConectar = (Button) findViewById(R.id.buttonConectar);
-		// Inflo ButtonAgregarCanal
-		mButtonAgregarCanal = (Button) findViewById(R.id.buttonAgregarCanal);
-		// Inflo ButtonRemoverCanal
-		mButtonRemoverCanal = (Button) findViewById(R.id.buttonRemoverCanal);
 		// Inflo SpinnerCanales
 		mSpinnerCanales = (Spinner) findViewById(R.id.spinnerCanales);
 		// Inflo SpinnerSenales
