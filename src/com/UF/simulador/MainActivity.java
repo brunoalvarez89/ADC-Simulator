@@ -1,10 +1,7 @@
 package com.UF.simulador;
 
 import java.nio.ByteBuffer;
-<<<<<<< HEAD
-=======
 import java.text.DecimalFormat;
->>>>>>> 19513300540cf80ca998c39bdd2088306daba68f
 import java.util.ArrayList;
 
 import android.annotation.SuppressLint;
@@ -69,7 +66,7 @@ public class MainActivity extends ActionBarActivity {
 	// Array de canales
 	private ArrayList<AdcChannel> mCanales = new ArrayList<AdcChannel>();
 	// Cantidad de canales
-	private int mTotalChannels = 3;
+	private int mTotalChannels = 1;
 	// Canal actual
 	private int mCanalActual = 0;
 	// Frecuencia de la señal
@@ -502,13 +499,10 @@ public class MainActivity extends ActionBarActivity {
 * Interfaz gráfica																	     *
 *****************************************************************************************/
 	private void setupUI() {
+		
 		// Inflo ButtonConectar
-<<<<<<< HEAD
-		mButtonConectar = (Button) findViewById(R.id.buttonConectar);
-=======
 		mButtonConnect = (Button) findViewById(R.id.buttonConectar);
 		
->>>>>>> 19513300540cf80ca998c39bdd2088306daba68f
 		// Inflo SpinnerCanales
 		mSpinnerChannel = (Spinner) findViewById(R.id.spinnerCanales);
 		setChannelSpinnerListener();
