@@ -48,7 +48,7 @@ public class AdcSimulator extends Thread {
 			
 			mMuestras = mCanales.get(mCanalActual).calcularMuestras();
 						
-			mHandler.obtainMessage(MENSAJES_SIMULADOR.MENSAJE_MUESTRA.getValue(), -1, mCanalActual, mMuestras).sendToTarget();
+			mHandler.obtainMessage(AdcSimulatorMessage.MENSAJE_MUESTRA.getValue(), -1, mCanalActual, mMuestras).sendToTarget();
 			
 			if(mConnected == true) {
 				//this.onPause();

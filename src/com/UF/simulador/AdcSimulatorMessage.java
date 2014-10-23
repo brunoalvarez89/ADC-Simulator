@@ -1,6 +1,6 @@
 package com.UF.simulador;
 
-public enum MENSAJES_SIMULADOR {
+public enum AdcSimulatorMessage {
 
 	MENSAJE_MUESTRA(1),
 	MENSAJE_CAMBIO_FS(2),
@@ -8,13 +8,13 @@ public enum MENSAJES_SIMULADOR {
 	
 	private final int value;
 	
-	private MENSAJES_SIMULADOR(int value){
+	private AdcSimulatorMessage(int value){
 		this.value=value;
 	}
 	 
 	public int getValue(){return value;}
 	
-	public static MENSAJES_SIMULADOR values(int what) {
+	public static AdcSimulatorMessage values(int what) {
 		switch(what){
 		case 1: return MENSAJE_MUESTRA;
 		case 2: return MENSAJE_CAMBIO_FS;

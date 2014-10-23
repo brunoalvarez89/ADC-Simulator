@@ -15,7 +15,7 @@ import android.os.Handler;
 import android.os.Parcelable;
 import android.util.Log;
 
-public class ConexionBT {
+public class BluetoohService {
 	
 	Parcelable[] uuidExtra;
 	
@@ -54,7 +54,7 @@ public class ConexionBT {
 	 * INICIO DE MÉTODOS DE CLASE *
 	 ******************************/
 	// Constructor
-	public ConexionBT(Handler mHandler) {
+	public BluetoohService(Handler mHandler) {
 		if (D) Log.d(TAG, "Creando servicio Bluetooth...");
 		mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 		mEstado = ESTADO_DESCONECTADO;
@@ -117,7 +117,7 @@ public class ConexionBT {
 		// Actualizo estado
 		setEstado(ESTADO_DESCONECTADO);
 		// Informo
-		mHandler.obtainMessage(MENSAJES_CONEXION.MENSAJE_DESCONECTADO.getValue()).sendToTarget();
+		mHandler.obtainMessage(BluetoothMessage.MENSAJE_DESCONECTADO.getValue()).sendToTarget();
 
 	}
 
@@ -133,7 +133,7 @@ public class ConexionBT {
 		if (mThreadServidor == null) {mThreadServidor = new ThreadServidor(); mThreadServidor.start();}
 		// Actualizo estado
 		setEstado(ESTADO_ESCUCHANDO);
-		mHandler.obtainMessage(MENSAJES_CONEXION.MENSAJE_ESCUCHANDO.getValue()).sendToTarget();
+		mHandler.obtainMessage(BluetoothMessage.MENSAJE_ESCUCHANDO.getValue()).sendToTarget();
 	}
 
 	// Si el dispositivo se conecta como Cliente...
@@ -155,7 +155,7 @@ public class ConexionBT {
 		// Actualizo estado
 		setEstado(ESTADO_BUSCANDO);
 		// Informo
-		mHandler.obtainMessage(MENSAJES_CONEXION.MENSAJE_BUSCANDO.getValue()).sendToTarget();
+		mHandler.obtainMessage(BluetoothMessage.MENSAJE_BUSCANDO.getValue()).sendToTarget();
 
 	}
 	
@@ -164,7 +164,7 @@ public class ConexionBT {
 		// Log
 		if (D) Log.d(TAG, "Intentando conectar dispositivos...");
 		// Envio el nombre del dispositivo remoto a la UI
-		mHandler.obtainMessage(MENSAJES_CONEXION.MENSAJE_DISPOSITIVO_REMOTO.getValue(), -1, 
+		mHandler.obtainMessage(BluetoothMessage.MENSAJE_DISPOSITIVO_REMOTO.getValue(), -1, 
 							   -1, dispositivo.getName()).sendToTarget();
 		// Cierro cualquier Thread de Escuchar Conexion
 		if (mThreadServidor != null) {mThreadServidor.cancel(); mThreadServidor = null;}
@@ -180,7 +180,7 @@ public class ConexionBT {
 	    // Actualizo estado
 		setEstado(ESTADO_CONECTADO);
 		// Informo
-		mHandler.obtainMessage(MENSAJES_CONEXION.MENSAJE_CONECTADO.getValue()).sendToTarget();
+		mHandler.obtainMessage(BluetoothMessage.MENSAJE_CONECTADO.getValue()).sendToTarget();
 	}
 
 	// Metodo de escritura sobre el Socket
@@ -235,7 +235,7 @@ public class ConexionBT {
 				}
 			// conexion aceptada	
 				if (mmBluetoothSocket != null) {
-                   synchronized (ConexionBT.this) {
+                   synchronized (BluetoohService.this) {
                         switch (mEstado) {
                         case ESTADO_ESCUCHANDO:
                         case ESTADO_BUSCANDO:
@@ -410,7 +410,7 @@ public class ConexionBT {
 					
 					mmBytes = mmInputStream.read(mmInputBuffer);
 					// Envio los Bytes recibidos a la UI mediante el Handler
-					mHandler.obtainMessage(MENSAJES_CONEXION.MENSAJE_LEER.getValue(), mmBytes, -1, mmInputBuffer[0]).sendToTarget();
+					mHandler.obtainMessage(BluetoothMessage.MENSAJE_LEER.getValue(), mmBytes, -1, mmInputBuffer[0]).sendToTarget();
 					
 				}// Desconexión! 
 				 catch (IOException e) { 
@@ -418,7 +418,7 @@ public class ConexionBT {
 					// Actualizo estado
 					setEstado(ESTADO_DESCONECTADO);
 					// Informo
-					mHandler.obtainMessage(MENSAJES_CONEXION.MENSAJE_CONEXION_PERDIDA.getValue()).sendToTarget();
+					mHandler.obtainMessage(BluetoothMessage.MENSAJE_CONEXION_PERDIDA.getValue()).sendToTarget();
 					break; 
 				}
 				

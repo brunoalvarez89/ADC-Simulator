@@ -1,6 +1,6 @@
 package com.UF.simulador;
 
-public enum MENSAJES_CONEXION {
+public enum BluetoothMessage {
 
 	MENSAJE_DESCONECTADO(1),
 	MENSAJE_ESCUCHANDO(2),
@@ -14,13 +14,13 @@ public enum MENSAJES_CONEXION {
 	
 	private final int value;
 	
-	private MENSAJES_CONEXION(int value){
+	private BluetoothMessage(int value){
 		this.value=value;
 	}
 	 
 	public int getValue(){return value;}
 	
-	public static MENSAJES_CONEXION values(int what) {
+	public static BluetoothMessage values(int what) {
 		switch(what){
 		case 1: return MENSAJE_DESCONECTADO;
 		case 2: return MENSAJE_ESCUCHANDO;

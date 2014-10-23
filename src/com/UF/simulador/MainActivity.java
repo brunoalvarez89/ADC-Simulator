@@ -14,7 +14,6 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.SystemClock;
 import android.util.Log;
-import android.util.SparseArray;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
@@ -45,17 +44,12 @@ public class MainActivity extends ActionBarActivity {
 * Interfaz gráfica					 												     *
 *****************************************************************************************/
 	private Button mButtonConnect;
-	private Button mButtonAgregarCanal;
-	private Button mButtonRemoverCanal;
 	private Spinner mSpinnerChannel;
 	private Spinner mSpinnerSignal;
 	private SeekBar mSeekBarF0;
-	private SeekBar mSeekBarFs;
 	private SeekBar mSeekBarOffset;
 	private TextView mTextViewF0;
-	private TextView mTextViewFs;
 	private TextView mTextViewOffset;
-	private TextView mTextViewDelay;
 	protected TextView mTextViewStatus;
 	private int mSelectedChannel;
 	private int mSelectedSignal;
@@ -63,12 +57,8 @@ public class MainActivity extends ActionBarActivity {
 /*****************************************************************************************
 * Parámetros del simulador	 														     *
 *****************************************************************************************/
-	// Array de canales
-	private ArrayList<AdcChannel> mCanales = new ArrayList<AdcChannel>();
 	// Cantidad de canales
 	private int mTotalChannels = 1;
-	// Canal actual
-	private int mCanalActual = 0;
 	// Frecuencia de la señal
 	private double mF0 = 1;
 	// Frecuencia de muestreo
@@ -85,11 +75,6 @@ public class MainActivity extends ActionBarActivity {
 	private AdcSimulator mAdcSimulator;
 	// Contador de paquetes simulados
 	private int mCantPaquetes = 0;
-	// Keys para las señales a transmitir
-	private final int SENAL_SENO = 1;
-	private final int SENAL_SIERRA = 2;
-	private final int SENAL_CUADRADA = 3;
-	private final int SENAL_SECUENCIA = 4;
 	private double mMaxVoltage = 2;
 	private double mMinVoltage = -2;
 	
@@ -104,7 +89,7 @@ public class MainActivity extends ActionBarActivity {
 	// Adaptador Bluetooth local
 	private BluetoothAdapter mBluetoothAdapter;
 	// Objeto para manejar la conexion
-	private ConexionBT mBluetoothConnection;
+	private BluetoohService mBluetoothConnection;
 	// Keys recibidas por el Handler
 	private static String mStringDispositivoRemoto;
 	// Dispositivo al cual me conecto
@@ -307,7 +292,7 @@ public class MainActivity extends ActionBarActivity {
 		@Override
 		public void handleMessage(Message msg) {
 			
-		MENSAJES_SIMULADOR mensaje = MENSAJES_SIMULADOR.values(msg.what);
+		AdcSimulatorMessage mensaje = AdcSimulatorMessage.values(msg.what);
 			
 		switch (mensaje) {
 		
@@ -390,7 +375,7 @@ public class MainActivity extends ActionBarActivity {
 		@Override
 		public void handleMessage(Message msg) {
 			
-			MENSAJES_CONEXION mensaje = MENSAJES_CONEXION.values(msg.what);
+			BluetoothMessage mensaje = BluetoothMessage.values(msg.what);
 			
 			switch (mensaje) {
 			
@@ -477,7 +462,7 @@ public class MainActivity extends ActionBarActivity {
 		// Inicializo Adapter Bluetooth
 		mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 		// Instancio conexión
-		mBluetoothConnection = new ConexionBT(mHandlerConexionBT);
+		mBluetoothConnection = new BluetoohService(mHandlerConexionBT);
 	}	
 	
 
@@ -522,9 +507,6 @@ public class MainActivity extends ActionBarActivity {
 		// Inflo TextViewBits
 		mTextViewOffset = (TextView) findViewById(R.id.textViewOffset);
 		
-		// Inflo TextViewDelay
-		mTextViewDelay = (TextView) findViewById(R.id.textViewDelay);
-		
 		// Inflo SeekBarF0
 		mSeekBarF0 = (SeekBar) findViewById(R.id.seekBarF0);
 		
@@ -548,7 +530,7 @@ public class MainActivity extends ActionBarActivity {
 		mButtonConnect.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				Intent intent = new Intent(getApplicationContext(), ActivityElegirDispositivo.class);
+				Intent intent = new Intent(getApplicationContext(), RemoteDeviceActivity.class);
 				intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
 				startActivityForResult(intent, REQUEST_CODE_ELEGIR_DISPOSITIVO);
 			}
@@ -630,7 +612,6 @@ public class MainActivity extends ActionBarActivity {
 
 			@Override
 			public void onNothingSelected(AdapterView<?> arg0) {
-				// TODO Auto-generated method stub	
 			}
 			
 		});
@@ -654,7 +635,6 @@ public class MainActivity extends ActionBarActivity {
 
 			@Override
 			public void onNothingSelected(AdapterView<?> arg0) {
-				// TODO Auto-generated method stub	
 			}
 			
 		});
@@ -730,6 +710,10 @@ public class MainActivity extends ActionBarActivity {
 	    setContentView(R.layout.layout_simulador_sensor);
 	    // Fijo orientación vertical
 	    this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+	    
+	    Intent intent = new Intent(getApplicationContext(), AdcChannelsActivity.class);
+		intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+		startActivityForResult(intent, REQUEST_CODE_ELEGIR_DISPOSITIVO);
 	}
 		
 	@Override

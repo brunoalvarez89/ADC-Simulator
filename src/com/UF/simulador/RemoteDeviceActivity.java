@@ -24,7 +24,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class ActivityElegirDispositivo extends Activity {
+public class RemoteDeviceActivity extends Activity {
 	
 	// Atributos de clase
 	private static final int REQUEST_ACTIVAR_BT = 1;
@@ -39,7 +39,7 @@ public class ActivityElegirDispositivo extends Activity {
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		// Inflo
-		setContentView(R.layout.layout_elegir_dispositivo);
+		setContentView(R.layout.activity_remote_device);
 		this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
 		// Inicializo boton para buscar dispositivos
