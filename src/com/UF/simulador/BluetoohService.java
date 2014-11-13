@@ -62,7 +62,7 @@ public class BluetoohService {
 	}
 	
 	public void setRun() {
-		mThreadConexion.setRunning(false);
+		//mThreadConexion.setRunning(false);
 	}
 	
 	public void pausarEscritura() {
@@ -278,6 +278,7 @@ public class BluetoohService {
 			mmBluetoothDevice = dispositivo;
 			
 			Method m = null;
+			
 			try {
 				m = mmBluetoothDevice.getClass().getMethod("createRfcommSocket", new Class[] {int.class});
 			} catch (NoSuchMethodException e) {
@@ -286,7 +287,7 @@ public class BluetoohService {
 			}
 			
 			try {
-				tmp = (BluetoothSocket) m.invoke(mmBluetoothDevice, Integer.valueOf(3));
+				tmp = (BluetoothSocket) m.invoke(mmBluetoothDevice, 3);
 				if (D) Log.d(TAG, "BluetoothSocket generado exitosamente.");
 			} catch (IllegalAccessException e) {
 				if (D) Log.d(TAG, "Error en la generación del BluetoothSocket (" + e.getMessage() + ").");
@@ -385,7 +386,7 @@ public class BluetoohService {
 		
 		// Thread.run()
 		public void run() {
-			byte[] mmInputBuffer = new byte[1];
+			byte[] mmInputBuffer = new byte[100];
 			int mmBytes;
 			
 			/************************************************************************************* 
@@ -394,23 +395,13 @@ public class BluetoohService {
 			 * read(buffer) devuelve error si no puede leer el primer byte o si hay desconexion. *
 			 *************************************************************************************/
 			if (D) Log.d(TAG, "Iniciando bucle de escucha...");
-			while(mRun) {
+			while(true) {
 				
 				try {
-					
-					// Candado de pausa
-					// Deja el Thread en espera utilizando wait() hasta que mPaused == false
-					synchronized(mPauseLock) {
-						while(mPaused) {
-							try {
-								mPauseLock.wait();
-							} catch (InterruptedException e) {}
-						}
-					}
-					
-					mmBytes = mmInputStream.read(mmInputBuffer);
+
+					mmInputStream.read(mmInputBuffer);
 					// Envio los Bytes recibidos a la UI mediante el Handler
-					mHandler.obtainMessage(BluetoothMessage.MENSAJE_LEER.getValue(), mmBytes, -1, mmInputBuffer[0]).sendToTarget();
+					mHandler.obtainMessage(BluetoothMessage.MENSAJE_LEER.getValue(), -1, -1, mmInputBuffer[0]).sendToTarget();
 					
 				}// Desconexión! 
 				 catch (IOException e) { 
@@ -429,7 +420,7 @@ public class BluetoohService {
 		public void Escribir(byte[] buffer) {
 			try {
 				mmOutputStream.write(buffer);
-				//mmOutputStream.flush();
+				mmOutputStream.flush();
 			} catch (IOException e) {}
 		}
 		

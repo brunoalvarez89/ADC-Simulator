@@ -31,6 +31,7 @@ import android.support.v7.app.ActionBarActivity;
 
 public class MainActivity extends ActionBarActivity {
 	
+
 /*****************************************************************************************
 * Inicio de atributos de clase				 										     *
 *****************************************************************************************/
@@ -309,7 +310,6 @@ public class MainActivity extends ActionBarActivity {
 				mCantPaquetes++;
 				
 				mAdcSimulator.nextChannel();
-				//mAdcSimulator.onResume();
 				
 				break;
 		
@@ -400,7 +400,7 @@ public class MainActivity extends ActionBarActivity {
 					
 					setButtonDisconnect();
 					
-					startAdcSimulator();
+					//startAdcSimulator();
 					
 					break;
 				
@@ -459,10 +459,12 @@ public class MainActivity extends ActionBarActivity {
 	}
 
 	private void setupConexion() {
+		
 		// Inicializo Adapter Bluetooth
 		mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 		// Instancio conexión
 		mBluetoothConnection = new BluetoohService(mHandlerConexionBT);
+		
 	}	
 	
 
@@ -711,9 +713,9 @@ public class MainActivity extends ActionBarActivity {
 	    // Fijo orientación vertical
 	    this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 	    
-	    Intent intent = new Intent(getApplicationContext(), AdcChannelsActivity.class);
-		intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-		startActivityForResult(intent, REQUEST_CODE_ELEGIR_DISPOSITIVO);
+	    //Intent intent = new Intent(getApplicationContext(), AdcChannelsActivity.class);
+		//intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+		//startActivityForResult(intent, REQUEST_CODE_ELEGIR_DISPOSITIVO);
 	}
 		
 	@Override

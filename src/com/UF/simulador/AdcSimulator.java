@@ -57,7 +57,7 @@ public class AdcSimulator extends Thread {
 			candadoPausa();
 			
 			try {
-				Thread.sleep(12);
+				Thread.sleep(1000);
 			} catch (InterruptedException e1) {
 				e1.printStackTrace();
 			}
