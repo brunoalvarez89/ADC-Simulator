@@ -59,7 +59,7 @@ public class MainActivity extends ActionBarActivity {
 * Parámetros del simulador	 														     *
 *****************************************************************************************/
 	// Cantidad de canales
-	private int mTotalChannels = 1;
+	private int mTotalChannels = 2;
 	// Frecuencia de la señal
 	private double mF0 = 1;
 	// Frecuencia de muestreo
@@ -301,16 +301,15 @@ public class MainActivity extends ActionBarActivity {
 
 				short[] samples = (short[]) msg.obj;
 				int channel = msg.arg2;
-
+				
+				mCantPaquetes++;
 				if(mBluetoothConnection != null) {
 					sendControlMessage();
 					sendSamples(samples, channel);
 				}
 				
-				mCantPaquetes++;
 				
-				mAdcSimulator.nextChannel();
-				
+								
 				break;
 		
 			default: 
@@ -321,7 +320,8 @@ public class MainActivity extends ActionBarActivity {
 
 	private void setupAdcSimulator() {
 
-		mTotalSamples = (int) (mDelayMax / (mTs * mTotalChannels));
+		//mTotalSamples = (int) (mDelayMax / (mTs * mTotalChannels));
+		mTotalSamples = 4;
 		mSamplesMessage = new byte[mCantBytesCanal + mCantBytesPorMuestra*mTotalSamples];
 		mAdcSimulator = new AdcSimulator(mHandlerSimulador, mTotalChannels, mTotalSamples, mFs, mBits);
 		
@@ -400,7 +400,7 @@ public class MainActivity extends ActionBarActivity {
 					
 					setButtonDisconnect();
 					
-					//startAdcSimulator();
+					startAdcSimulator();
 					
 					break;
 				
