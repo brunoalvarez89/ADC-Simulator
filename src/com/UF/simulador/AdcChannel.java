@@ -60,13 +60,14 @@ public class AdcChannel {
 		for(int i=0; i<mCantMuestras; i++) {
 			mSamples[i] = getSample();
 		}
-		
+	
+		/*
 		try {
 			Thread.sleep(mDelay);
 		} catch (InterruptedException e1) {
 			e1.printStackTrace();
 		}
-		
+		*/
 		return mSamples;
 	}
 	

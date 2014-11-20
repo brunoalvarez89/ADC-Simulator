@@ -2,6 +2,7 @@ package com.UF.simulador;
 
 import java.io.IOException;
 import java.util.UUID;
+import java.io.DataInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
@@ -386,6 +387,7 @@ public class BluetoohService {
 		
 		// Thread.run()
 		public void run() {
+			DataInputStream dataInputStream = new DataInputStream(mmInputStream);
 			byte[] mmInputBuffer = new byte[100];
 			int mmBytes;
 			
@@ -398,7 +400,8 @@ public class BluetoohService {
 			while(true) {
 				
 				try {
-
+					//mmInputStream.read
+					//dataInputStream.
 					mmInputStream.read(mmInputBuffer);
 					// Envio los Bytes recibidos a la UI mediante el Handler
 					mHandler.obtainMessage(BluetoothMessage.MENSAJE_LEER.getValue(), -1, -1, mmInputBuffer[0]).sendToTarget();
