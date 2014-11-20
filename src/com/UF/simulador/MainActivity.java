@@ -59,11 +59,7 @@ public class MainActivity extends ActionBarActivity {
 * Parámetros del simulador	 														     *
 *****************************************************************************************/
 	// Cantidad de canales
-<<<<<<< HEAD
 	private int mTotalChannels = 3;
-=======
-	private int mTotalChannels = 2;
->>>>>>> 97ce7001eb20112eb829f8e64aa9ee872493cc57
 	// Frecuencia de la señal
 	private double mF0 = 1;
 	// Frecuencia de muestreo
@@ -315,14 +311,7 @@ public class MainActivity extends ActionBarActivity {
 					sendControlMessage();
 					sendSamples(samples, channel);
 				}
-				
-<<<<<<< HEAD
-				mCantPaquetes++;
-				
-=======
-				
-								
->>>>>>> 97ce7001eb20112eb829f8e64aa9ee872493cc57
+
 				break;
 		
 			default: 
