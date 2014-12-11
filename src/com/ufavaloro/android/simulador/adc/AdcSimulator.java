@@ -1,7 +1,8 @@
-package com.UF.simulador;
+package com.ufavaloro.android.simulador.adc;
 
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
+
 
 import android.os.Handler;
 import android.os.SystemClock;
@@ -26,7 +27,7 @@ public class AdcSimulator extends Thread {
 	private boolean mConnected = false;
 	
 	// Constructor de clase
-	AdcSimulator(Handler mHandler, int mCantCanales, int mCantMuestras, double mFs, int mBits) {
+	public AdcSimulator(Handler mHandler, int mCantCanales, int mCantMuestras, double mFs, int mBits) {
 		
 		this.mHandler = mHandler;
 		
@@ -80,7 +81,7 @@ public class AdcSimulator extends Thread {
 	
 	public void setSenal(int tipo_senal, int canal) {
 		if(canal >= mCantCanales) return;
-		mCanales.get(canal).setSenal(tipo_senal);
+		mCanales.get(canal).setSignal(tipo_senal);
 	}
 	
 	private void candadoPausa() {

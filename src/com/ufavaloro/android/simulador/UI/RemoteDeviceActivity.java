@@ -1,6 +1,8 @@
-package com.UF.simulador;
+package com.ufavaloro.android.simulador.UI;
 
 import java.util.Set;
+
+import com.UF.simulador.R;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;

@@ -1,4 +1,6 @@
-package com.UF.simulador;
+package com.ufavaloro.android.simulador.UI;
+
+import com.UF.simulador.R;
 
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;

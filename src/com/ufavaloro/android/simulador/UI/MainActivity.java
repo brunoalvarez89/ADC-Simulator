@@ -1,8 +1,15 @@
-package com.UF.simulador;
+package com.ufavaloro.android.simulador.UI;
 
 import java.nio.ByteBuffer;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+
+import com.UF.simulador.R;
+import com.ufavaloro.android.simulador.adc.AdcChannel;
+import com.ufavaloro.android.simulador.adc.AdcSimulator;
+import com.ufavaloro.android.simulador.adc.AdcSimulatorMessage;
+import com.ufavaloro.android.simulador.bluetooth.BluetoohService;
+import com.ufavaloro.android.simulador.bluetooth.BluetoothMessage;
 
 import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
@@ -563,34 +570,28 @@ public class MainActivity extends ActionBarActivity {
 	}
 	
 	private void populateChannelSpinner() {
-		
 		ArrayList<String> channels = new ArrayList<String>();
 	    
-		for (int i = 0; i < mTotalChannels; i++) {
-	        channels.add(Integer.toString(i+1));
-	    }
+		for (int i = 0; i < mTotalChannels; i++) channels.add(Integer.toString(i+1));
 	   
 		ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, channels);
 
-	    mSpinnerChannel.setAdapter(arrayAdapter);
-	    
+	    mSpinnerChannel.setAdapter(arrayAdapter); 
 	}
 	
 	private void populateSignalSpinner() {
-		
 		ArrayList<String> signals = new ArrayList<String>();
-		
 		signals.add("Senoidal");
 		signals.add("Dientes de Sierra");
 	    signals.add("Cuadrada");
+	    signals.add("Secuencia");
+	    signals.add("ECG");
 	    
 	    ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, signals);
-	    
 	    mSpinnerSignal.setAdapter(arrayAdapter);
 	}
 	
 	private void setChannelSpinnerListener() {
-		
 		mSpinnerChannel.setOnItemSelectedListener(new OnItemSelectedListener() {
 			
 			@Override
@@ -633,7 +634,7 @@ public class MainActivity extends ActionBarActivity {
 				
 				if(mAdcSimulator != null) {
 					AdcChannel selectedChannel = mAdcSimulator.getChannel(mSelectedChannel);
-					selectedChannel.setSenal(mSelectedSignal);
+					selectedChannel.setSignal(mSelectedSignal);
 				}
 			}
 

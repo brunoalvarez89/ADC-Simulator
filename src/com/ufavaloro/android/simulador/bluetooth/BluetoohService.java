@@ -1,4 +1,4 @@
-package com.UF.simulador;
+package com.ufavaloro.android.simulador.bluetooth;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -81,7 +81,7 @@ public class BluetoohService {
 	}
 
 	// Metodo que para todos los Threads
-	protected void stop() {
+	public void stop() {
 		// Mato Thread Servidor
 		if (mThreadServidor != null) {
 			mThreadServidor.cancel(); 
