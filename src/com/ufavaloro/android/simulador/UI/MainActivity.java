@@ -82,7 +82,7 @@ public class MainActivity extends ActionBarActivity {
 	// Instancia de la clase
 	private AdcSimulator mAdcSimulator;
 	// Contador de paquetes simulados
-	private int mCantPaquetes = 0;
+	private double mPackageCount = 0;
 	private double mMaxVoltage = 2;
 	private double mMinVoltage = -2;
 	
@@ -112,9 +112,9 @@ public class MainActivity extends ActionBarActivity {
 	* Mensaje de control		 														 *
 	*************************************************************************************/
 	// Cantidad de bytes de control
-	private int mCantBytesMensajeControl = 3;
+	private int mControlMessageByteCount = 3;
 	// Mensaje de Control
-	private byte[] mMensajeControl = new byte[mCantBytesMensajeControl];
+	private byte[] mControlMessage = new byte[mControlMessageByteCount];
 	
 	/*************************************************************************************
 	* Mensaje con la cantidad de canales 												 *
@@ -152,13 +152,13 @@ public class MainActivity extends ActionBarActivity {
 * Paquetes Bluetooth				 												 	 *
 *****************************************************************************************/
 	private void setupControlMessage() {
-		for(int i=0; i<mCantBytesMensajeControl; i++) {
-		mMensajeControl[i] = '#';
+		for(int i=0; i<mControlMessageByteCount; i++) {
+		mControlMessage[i] = '#';
 		}
 	}
 
 	private void sendControlMessage() {
-		mBluetoothConnection.write(mMensajeControl);
+		mBluetoothConnection.write(mControlMessage);
 	}
 	
 	private void sendChannelQtyMessage() {
@@ -267,10 +267,6 @@ public class MainActivity extends ActionBarActivity {
 		mBluetoothConnection.write(mAdcMessage);
 	}
 	
-	private void sendSsamples(short[] samples, int adcChannel) {
-		
-	}
-	
 	private void sendSamples(short[] samples, int adcChannel) {
 		
 		// Coloco nro de canal en el buffer
@@ -282,18 +278,17 @@ public class MainActivity extends ActionBarActivity {
 		
 		// Paso las muestras de short a byte (2 bytes por muestra)
 		for(int i = 0; i < mTotalSamples; i++) {
-			
 			for (int j = 0; j < 2; j++) {
-				
 				mSamplesMessage[4 + 2*i + j] = (byte)(samples[i] >> (j * 8));
-			
 			}
-			
 		}
-		
 		mBluetoothConnection.write(mSamplesMessage);
 	}
 	
+	private void sendPackageCount(double packageNumber) {
+		byte[] bytePackageNumber = doubleToByte(packageNumber);
+		mBluetoothConnection.write(bytePackageNumber);
+	}
 	
 /*****************************************************************************************
 * Simulación de muestras									 				  			 *
@@ -313,10 +308,11 @@ public class MainActivity extends ActionBarActivity {
 				short[] samples = (short[]) msg.obj;
 				int channel = msg.arg2;
 				
-				mCantPaquetes++;
+				mPackageCount++;
 				if(mBluetoothConnection != null) {
 					sendControlMessage();
 					sendSamples(samples, channel);
+					sendPackageCount(mPackageCount);
 				}
 
 				break;
