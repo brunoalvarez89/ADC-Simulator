@@ -152,9 +152,7 @@ public class MainActivity extends ActionBarActivity {
 * Paquetes Bluetooth				 												 	 *
 *****************************************************************************************/
 	private void setupControlMessage() {
-		for(int i=0; i<mControlMessageByteCount; i++) {
-		mControlMessage[i] = '#';
-		}
+		for(int i=0; i<mControlMessageByteCount; i++) mControlMessage[i] = '#';
 	}
 
 	private void sendControlMessage() {
@@ -324,55 +322,40 @@ public class MainActivity extends ActionBarActivity {
 	};
 
 	private void setupAdcSimulator() {
-
-		//mTotalSamples = (int) (mDelayMax / (mTs * mTotalChannels));
-		mTotalSamples = 4;
+		mTotalSamples = (int) (mDelayMax / (mTs * mTotalChannels));
+		//mTotalSamples = 4;
 		mSamplesMessage = new byte[mCantBytesCanal + mCantBytesPorMuestra*mTotalSamples];
 		mAdcSimulator = new AdcSimulator(mHandlerSimulador, mTotalChannels, mTotalSamples, mFs, mBits);
 		
-		for(int i = 0; i < mTotalChannels; i++) {
-			
+		for(int i = 0; i < mTotalChannels; i++) {	
 			mAdcSimulator.setAmplitud(1, i);
 			mAdcSimulator.setF0(1, i);
 			mAdcSimulator.setInitialOffset(1, i);
 			mAdcSimulator.setSenal(i+1, i);
-			
-		}
-		
+		}	
 	}
 
 	private void startAdcSimulator() {
-		
 		mAdcSimulator.setOnline(true);
 		mAdcSimulator.setRunning(true);
 		mAdcSimulator.start();
-	
 	}
 	
 	private void stopAdcSimulator() {
+		if (mAdcSimulator == null) return;
+	
+		boolean retry = true;		
+		mAdcSimulator.setRunning(false);
 		
-		if (mAdcSimulator != null) { 
-			
-			boolean retry = true;
-			
-			mAdcSimulator.setRunning(false);
-			
-			while(retry) {
-				
-				try {
-					
-					mAdcSimulator.join();
-					retry = false;
-				
-				} catch (InterruptedException e) {}
-			
-			}
-			
+		while(retry) {
+			try {
+				mAdcSimulator.join();
+				retry = false;
+			} catch (InterruptedException e) {}
 		}
-		
 	}
 
-	
+
 /*****************************************************************************************
 * Conexión Bluetooth		 														     *
 *****************************************************************************************/
@@ -464,12 +447,10 @@ public class MainActivity extends ActionBarActivity {
 	}
 
 	private void setupConexion() {
-		
 		// Inicializo Adapter Bluetooth
 		mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 		// Instancio conexión
 		mBluetoothConnection = new BluetoohService(mHandlerConexionBT);
-		
 	}	
 	
 
@@ -491,7 +472,6 @@ public class MainActivity extends ActionBarActivity {
 * Interfaz gráfica																	     *
 *****************************************************************************************/
 	private void setupUI() {
-		
 		// Inflo ButtonConectar
 		mButtonConnect = (Button) findViewById(R.id.buttonConectar);
 		
@@ -528,7 +508,6 @@ public class MainActivity extends ActionBarActivity {
            
 		// Seteo Listener SeekBarOffset
 		setSeekBarOffsetListener();
-		
 	}
 	
 	// mButtonConectar = Conectar
@@ -546,32 +525,23 @@ public class MainActivity extends ActionBarActivity {
 	
 	// mButtonConectar = Desconectar
 	private void setButtonDisconnect() {
-		
 		mButtonConnect.setText("Desconectar");
-		
 		mButtonConnect.setOnClickListener(new OnClickListener() {
 			
 			@Override
-			public void onClick(View v) {
-				
+			public void onClick(View v) {	
 				mBluetoothConnection.stop();
 				mAdcSimulator.setOnline(false);
 				mAdcSimulator.onResume();
 				setButtonConnnect();
-			
 			}
-		
 		});
-	
 	}
 	
 	private void populateChannelSpinner() {
 		ArrayList<String> channels = new ArrayList<String>();
-	    
 		for (int i = 0; i < mTotalChannels; i++) channels.add(Integer.toString(i+1));
-	   
 		ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, channels);
-
 	    mSpinnerChannel.setAdapter(arrayAdapter); 
 	}
 	
@@ -591,12 +561,10 @@ public class MainActivity extends ActionBarActivity {
 		mSpinnerChannel.setOnItemSelectedListener(new OnItemSelectedListener() {
 			
 			@Override
-			public void onItemSelected(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
-				
+			public void onItemSelected(AdapterView<?> arg0, View arg1, int arg2, long arg3) {			
 				mSelectedChannel = arg2;
 				
 				if(mAdcSimulator != null) {
-					
 					AdcChannel selectedChannel = mAdcSimulator.getChannel(mSelectedChannel);
 					
 					int offset = (int) (selectedChannel.getOffset() + 99);
@@ -607,16 +575,14 @@ public class MainActivity extends ActionBarActivity {
 					
 					int signal = selectedChannel.getSignal();
 					mSpinnerSignal.setSelection(signal - 1, true);
-				
 				}
 			}
 
 			@Override
-			public void onNothingSelected(AdapterView<?> arg0) {
-			}
+			public void onNothingSelected(AdapterView<?> arg0) {}
 			
 		});
-		
+	
 	}
 	
 	private void setSignalSpinnerListener() {
