@@ -1,15 +1,12 @@
 package com.ufavaloro.android.simulador.adc;
 
 import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
-
-
 import android.os.Handler;
-import android.os.SystemClock;
 
 public class AdcSimulator extends Thread {
-	private ArrayList<AdcChannel> mCanales = new ArrayList<AdcChannel>();
-	// Handler a MainActivity
+	// Channels of the ADC
+	private ArrayList<AdcChannel> mChannels = new ArrayList<AdcChannel>();
+	// Handler to Invoking Activity
 	private Handler mHandler;
 	// Valor de la muestra en short int
 	private short[] mMuestras;
@@ -19,69 +16,58 @@ public class AdcSimulator extends Thread {
 	private boolean mPaused = false;
 	// Flag de run
 	private boolean mRun;
-	// Canal actual simulado
-	private int mCanalActual = 0;
-	// Cantidad total de canales
-	private int mCantCanales;
-	// Estoy on-line?
-	private boolean mConnected = false;
-	
+	// Current Channel
+	private int mCurrentChannel = 0;
+	// Total Channels
+	private int mTotalChannels;
+
 	// Constructor de clase
 	public AdcSimulator(Handler mHandler, int mCantCanales, int mCantMuestras, double mFs, int mBits) {
-		
 		this.mHandler = mHandler;
-		
-		this.mCantCanales = mCantCanales;
-		
+		this.mTotalChannels = mCantCanales;
 		mMuestras = new short[mCantMuestras];
 		
-		for(int i=0; i<mCantCanales; i++) {
-			AdcChannel canal = new AdcChannel(i, mFs, mBits, mCantMuestras);
-			mCanales.add(canal);
+		for(int i = 0; i < mCantCanales; i++) {
+			AdcChannel canal = new AdcChannel(mFs, mBits, mCantMuestras);
+			mChannels.add(canal);
 		}
-		
 	}
 		
 	// Generación de muestras
 	@Override
 	public void run() {
-
 		while(mRun) {			
-		
-			mMuestras = mCanales.get(mCanalActual).calcularMuestras();
-						
-			mHandler.obtainMessage(AdcSimulatorMessage.MENSAJE_MUESTRA.getValue(), -1, mCanalActual, mMuestras.clone()).sendToTarget();
-
+			mMuestras = mChannels.get(mCurrentChannel).getSamples();			
+			mHandler.obtainMessage(AdcSimulatorMessage.MENSAJE_MUESTRA.getValue(), -1, 
+								   mCurrentChannel, mMuestras.clone()).sendToTarget();
 			nextChannel();
-			
 			candadoPausa();
-		
 		}
 	}
 	
 	public void nextChannel() {
-		mCanalActual++;
-		if(mCanalActual == mCantCanales) mCanalActual = 0;
+		mCurrentChannel++;
+		if(mCurrentChannel == mTotalChannels) mCurrentChannel = 0;
 	}
 	
 	public void setAmplitud(double amplitud, int canal) {
-		if(canal >= mCantCanales) return;
-		mCanales.get(canal).setAmplitud(amplitud);
+		if(canal >= mTotalChannels) return;
+		mChannels.get(canal).setAmplitude(amplitud);
 	}
 	
 	public void setF0(double f0, int canal) {
-		if(canal >= mCantCanales) return;
-		mCanales.get(canal).setF0(f0);
+		if(canal >= mTotalChannels) return;
+		mChannels.get(canal).setF0(f0);
 	}
 	
 	public void setOffset(double offset, int canal) {
-		if(canal >= mCantCanales) return;
-		mCanales.get(canal).setOffset(offset);
+		if(canal >= mTotalChannels) return;
+		mChannels.get(canal).setOffset(offset);
 	}
 	
 	public void setSenal(int tipo_senal, int canal) {
-		if(canal >= mCantCanales) return;
-		mCanales.get(canal).setSignal(tipo_senal);
+		if(canal >= mTotalChannels) return;
+		mChannels.get(canal).setSignalType(tipo_senal);
 	}
 	
 	private void candadoPausa() {
@@ -122,17 +108,13 @@ public class AdcSimulator extends Thread {
 	}
 	
 	public AdcChannel getChannel(int index) {
-		return mCanales.get(index);
+		return mChannels.get(index);
 	}
 	
-	public void setOnline(boolean mConnected) {
-		this.mConnected = mConnected;
-	}
 
-	
 	public void setInitialOffset(int offset, int channel) {
-		if(channel >= mCantCanales) return;
-		mCanales.get(channel).setInitialOffset(offset);
+		if(channel >= mTotalChannels) return;
+		mChannels.get(channel).setInitialOffset(offset);
 		
 	}
 }

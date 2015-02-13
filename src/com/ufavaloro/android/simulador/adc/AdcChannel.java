@@ -1,45 +1,55 @@
 package com.ufavaloro.android.simulador.adc;
 
 public class AdcChannel {
-	// Amplitud de la Señal
-	private double mA = 1;
-	// Frecuencia de la Señal
-	private double mF0 = 1;
-	// Offset total de la Señal (siempre tiene como base de continua mA)
-	private double mOffset = 0;
-	// Frecuencia de muestreo
-	private double mFs;
-	// Período de muestreo
+	/**
+	 * Channel Parameters
+	 */
+	// Sampling Period
 	private double mTs;
-	// Resolución
+	// Resolution in Bits
 	private int mBits;
-	// Escalones totales
-	private double mEscalonesTotales;
-	// Valor del escalón
-	private double mEscalon;
-	// Valor de la muestra en short int
+	// Total Resolution Steps
+	private double mTotalSteps;
+	// Resolution Step
+	private double mStep;
+	// Samples Array
 	private short[] mSamples;
-	// Cantidad de muestras conjuntas a devolver
-	private int mCantMuestras = 0;
-	// Iterador
+	// Samples to generate
+	private int mTotalSamples = 0;
+	// Iterator
 	private int n = 0;
-	// Valor de la muestra actual
-	private short mMuestraActual = 0;
-	// Pendiente dientes de sierra
-	private double mPendiente = 1;
-	// Delay (en mS) que tarda el simulador en generar un array de mCantMuestras
+	// Value of the current Sample
+	private short mCurrentSample = 0;
+	// Delay (in mS) to generate mSamples (it depends on the Sampling Frequency and the
+	// amount of Samples to generate
 	private long mDelay;
-	// Señal senoidal
-	private final int SENAL_SENO = 1;
-	// Señal dientes de sierra
-	private final int SENAL_SIERRA = 2;
-	// Señal cuadrada
-	private final int SENAL_CUADRADA = 3;
-	// Secuencia de números creciente
-	private final int SENAL_SECUENCIA = 4;
-	// ECG (0-5v, 16 Bits, 1 KHZ)
-	private final int SENAL_ECG = 5;
-	private final int[] ECG ={381, 384, 387, 390, 393, 396, 399, 403, 407, 411, 
+	
+	/**
+	 * Signal Parameters
+	 */
+	// Signal Amplitude
+	private double mA = 1;
+	// Signal Frequency
+	private double mF0 = 1;
+	// Signal Offset (siempre tiene como base de continua mA)
+	private double mOffset = 0;
+	// Sawtooth slope
+	private double mSawtoothSlope = 1;
+	
+	/**
+	 * Signal Codes
+	 */
+	// Sine
+	private final int SIGNAL_SINE = 1;
+	// Sawtooth
+	private final int SIGNAL_SAWTOOTH = 2;
+	// Square
+	private final int SIGNAL_SQUARE = 3;
+	// Incrementing Sequence
+	private final int SIGNAL_SEQUENCE = 4;
+	// Human EKG (already sampled and digitalized, 0-5v, Res: 16 Bits, Fs: 1 KHZ)
+	private final int SIGNAL_EKG = 5;
+	private final int[] mEkgSignal = {381, 384, 387, 390, 393, 396, 399, 403, 407, 411, 
 			   				  415, 420, 424, 429, 435, 441, 447, 454, 461, 469, 
 							  477, 485, 495, 504, 515, 526, 537, 549, 562, 575, 
 							  588, 602, 616, 630, 645, 660, 675, 690, 705, 720, 
@@ -93,118 +103,213 @@ public class AdcChannel {
 							  455, 450, 445, 441, 437, 433, 430, 427, 424, 422, 
 							  419, 417, 415, 413, 412, 410, 408, 407, 405, 404, 
 							  402, 401, 399, 398, 396, 395, 393, 391, 389, 387, 385, 383, 381};
-	// Señal a transmitir
-	private int TIPO_SENAL;
-	//Número de canal
-	private int mCanal;
+	// Dog Aortic Pressure Wave (not digitalized, aprox. 50-120 mmHg, Fs: 250 Hz)
+	private final int SIGNAL_PRESSURE = 6;
+	private final double[] mPressureSignal = {70.25506592, 70.37869263, 0.625946040, 69.38970947, 
+											  69.88421631, 69.51333618, 69.88421631, 69.63696289, 
+											  68.27713013, 68.89523315, 68.15350342, 68.02987671, 
+											  67.41177368, 67.16455078, 67.53540039, 66.67007446, 
+											  65.80471802, 66.29919434, 65.43383789, 64.81573486, 
+											  65.06298828, 65.18661499, 64.93936157, 64.81573486,
+											  65.18661499, 64.56851196, 64.07400513, 63.95040894, 
+											  63.82678223, 64.69213867, 63.95040894, 63.57952881, 
+											  63.82678223, 63.45590210, 63.33230591, 64.19763184, 
+											  63.33230591, 63.20867920, 64.19763184, 63.33230591, 
+											  63.08505249, 63.08505249, 62.83779907, 62.09606934, 
+											  62.71420288, 61.60159302, 61.47796631, 61.23074341, 
+											  60.73626709, 60.73626709, 59.50003052, 59.87091064, 
+											  59.62365723, 59.50003052, 59.25280762, 58.38745117, 
+											  59.00555420, 58.63470459, 59.12918091, 58.51107788, 
+											  58.26382446, 57.76934814, 58.26382446, 58.51107788, 
+											  58.63470459, 59.25280762, 59.12918091, 60.85986328, 
+											  63.82678223, 69.76058960, 78.29043579, 86.20217896, 
+											  91.14700317, 97.32806396, 102.2729187, 106.4760132, 
+											  109.8137817, 111.4208679, 113.2751770, 115.1294861, 
+											  116.8601990, 117.2310486, 118.3436279, 118.5908813, 
+											  118.9617310, 119.2089844, 119.5798340, 119.8270874, 
+											  119.7034607, 119.2089844, 118.5908813, 117.7255249, 
+											  116.9837952, 116.1184692, 115.6239624, 115.2531128, 
+											  114.1405334, 113.5224304, 112.2862244, 110.0610352, 
+											  108.8248291, 106.8468933, 106.3523865, 104.8689575, 
+											  103.6327515, 101.7784119, 99.67687988, 96.83358765,
+											  92.87771606, 89.41632080, 90.03442383, 92.50683594, 
+											  92.75408936, 91.88873291, 91.14700317, 91.27062988, 
+											  91.39425659, 92.13598633, 92.13598633, 92.38323975,
+			 								  92.50683594, 92.25961304, 93.00134277, 93.24856567, 
+			 								  93.61944580, 94.23754883, 94.97927856, 95.22650146, 
+			 								  95.35012817, 95.84460449, 95.84460449, 96.33911133, 
+			 								  96.21548462, 96.46270752, 96.09185791, 95.84460449,
+			 								  95.47375488, 94.97927856, 93.74307251, 94.23754883,
+			 								  93.61944580, 92.63046265, 92.25961304, 91.76513672, 
+			 								  91.51788330, 90.77615356, 89.91079712, 89.41632080,
+			 								  88.42736816, 88.42736816, 87.43838501, 86.82028198,
+			 								  86.20217896, 85.21319580, 84.84234619, 84.47149658,
+			 								  84.22424316, 83.35888672, 82.49356079, 82.74078369, 
+			 								  81.75183105, 81.62820435, 81.38095093, 80.63922119, 
+			 								  80.51562500, 80.39199829, 80.02111816, 79.52664185, 
+			 								  79.89752197, 78.78491211, 79.03216553, 78.78491211,
+			 								  78.41406250, 78.29043579, 77.17785645, 77.17785645, 
+			 								  76.31250000, 76.31250000, 76.18887329, 74.82904053, 
+			 								  75.57077026, 74.82904053, 74.95266724, 74.33456421, 
+			 								  73.59283447, 73.59283447, 73.09835815, 73.09835815, 
+			 								  72.97473145, 72.72747803, 72.48025513, 72.97473145,
+			 								  72.35662842, 72.72747803, 71.98574829, 72.23300171, 
+			 								  72.10937500, 71.86215210, 71.61489868, 70.87316895,
+			 								  71.49127197, 70.62594604, 70.74954224, 69.51333618,
+			 								  69.76058960, 69.51333618, 68.77160645, 68.27713013, 
+			 								  67.53540039, 67.41177368, 67.28817749, 66.67007446,
+			 								  66.29919434, 66.17556763, 66.42282104, 66.05194092,
+			 								  65.80471802, 66.17556763, 66.42282104, 65.92834473,
+			 								  66.42282104, 65.92834473, 66.42282104, 67.04092407,
+			 								  67.65902710, 68.52438354, 68.77160645, 71.98574829,
+			 								  78.04318237, 85.70770264, 92.13598633, 97.08084106, 
+			 								  102.5201416, 107.3413696, 110.1846619, 113.8932800, 
+			 								  116.3656921, 117.2310486, 118.2200317, 118.7145081,
+			 								  119.8270874, 120.5688171, 120.8160706, 121.3105469, 
+			 								  121.4341736, 122.5467529, 122.5467529, 122.4231262,
+			 								  122.5467529, 122.9176025, 122.5467529};
+	// Current Signal
+	private int CURRENT_SIGNAL;
 	
-	// Constructor de clase
-	AdcChannel(int mCanal, double mFs, int mBits, int mCantMuestras) {
-		this.mCanal = mCanal;
-		this.mFs = mFs;
-		mTs = 1/mFs;
-		this.mBits = mBits;
-		mEscalonesTotales = Math.pow(2, this.mBits);
-		this.mCantMuestras = mCantMuestras;
-		mSamples = new short[mCantMuestras];
-		mDelay = ((long)(1000*mCantMuestras/mFs));
+	/**
+	 * Constructor.
+	 * 
+	 * @param fs - Sampling Frequency.
+	 * @param bits - Resolution.
+	 * @param totalSamples - Amount of samples to generate.
+	 */
+	AdcChannel(double fs, int bits, int totalSamples) {
+		mTs = 1/fs;
+		mBits = bits;
+		mTotalSteps = Math.pow(2, mBits);
+		mTotalSamples = totalSamples;
+		mSamples = new short[totalSamples];
+		mDelay = ((long)(1000*totalSamples/fs));
 	}
 	
-	// Cálculo de muestras
-	public short[] calcularMuestras() {
-		
-		for(int i=0; i<mCantMuestras; i++) {
-			mSamples[i] = getSample();
-		}
-	
-		
-		try {
-			Thread.sleep(mDelay);
-		} catch (InterruptedException e1) {
-			e1.printStackTrace();
-		}
-		
+	/**
+	 * Populates the mSamples array and waits mDelay to return it.
+	 * @return The array of generated samples.
+	 */
+	public short[] getSamples() {	
+		for(int i=0; i<mTotalSamples; i++) mSamples[i] = generateSample();
+		try { Thread.sleep(mDelay); } catch (InterruptedException e1) { e1.printStackTrace(); }
 		return mSamples;
 	}
 	
+	/**
+	 * Generates a sample of the CURRENT_SIGNAL.
+	 * @return The generated sample.
+	 */
 	// Selector de señal
-	private short getSample() {
-		// Incremento
+	private short generateSample() {
 		n++;
 		
-		switch(TIPO_SENAL) {
+		switch(CURRENT_SIGNAL) {
 		
-			case SENAL_SENO:
-				mMuestraActual = (short) ((mA*Math.sin(2*Math.PI*mF0*n*mTs) + mOffset) / mEscalon);
+			case SIGNAL_SINE:
+				mCurrentSample = (short) ((mA*Math.sin(2*Math.PI*mF0*n*mTs) + mOffset) / mStep);
 				break;
 		
-			case SENAL_SIERRA:
-				if(n*mTs < 2*mA/mPendiente) mMuestraActual = (short) ((-mF0*n*mTs + 2*mOffset) / mEscalon);
+			case SIGNAL_SAWTOOTH:
+				if(n*mTs < 2*mA/mSawtoothSlope) mCurrentSample = (short) ((-mF0*n*mTs + 2*mOffset) / mStep);
 				if(n*mTs >= 2*mA/mF0) n = 0;
 				break;
 					
-			case SENAL_CUADRADA:
+			case SIGNAL_SQUARE:
 				double mT0 = 1 / mF0;
-				if(n*mTs < mT0/2) mMuestraActual = (short) (((2*mA) + mOffset - 1)  / mEscalon);
-				if(n*mTs > mT0/2) mMuestraActual = (short) ((mOffset - 1)  / mEscalon);
+				if(n*mTs < mT0/2) mCurrentSample = (short) (((2*mA) + mOffset - 1)  / mStep);
+				if(n*mTs > mT0/2) mCurrentSample = (short) ((mOffset - 1)  / mStep);
 				if(n*mTs > mT0) n = 0; 				
 				break;
 				
-			case SENAL_SECUENCIA:
-				if(n == mEscalonesTotales) n = 0;
-				mMuestraActual = (short) n;
+			case SIGNAL_SEQUENCE:
+				if(n == mTotalSteps) n = 0;
+				mCurrentSample = (short) n;
 				break;
 				
-			case SENAL_ECG:
-				if(n == ECG.length) n = 0;
-				mMuestraActual = (short) ECG[n];
+			case SIGNAL_EKG:
+				if(n == mEkgSignal.length) n = 0;
+				mCurrentSample = (short) mEkgSignal[n];
 				break;
+				
+			case SIGNAL_PRESSURE:
+				if(n == mPressureSignal.length) n = 0;
+				mCurrentSample = (short) (mPressureSignal[n] / mStep);
 		}
 			
-		return mMuestraActual;
+		return mCurrentSample;
 		
 	}
 	
-	public void setF0(double mF0) {
-		this.mF0 = mF0;
+	/**
+	 * Sets the Signal Frequency.
+	 * @param f0 - Signal Frequency.
+	 */
+	public void setF0(double f0) {
+		mF0 = f0;
 	}
 	
-	public void setAmplitud(double mA) {
-		this.mA = mA;
-		mEscalon = 2 * mA / mEscalonesTotales;
+	/**
+	 * Sets the Signal Amplitude.
+	 * @param amplitude - Signal Amplitude.
+	 */
+	public void setAmplitude(double amplitude) {
+		mA = amplitude;
+		mStep = 2 * amplitude / mTotalSteps;
 	}
 
+	/**
+	 * Sets the Signal Offset.
+	 * @param offset - Signal Offset.
+	 */
 	public void setOffset(double offset) {
 		mOffset = 1 + (offset*0.025);
 	}
 	
+	/**
+	 * Sets the initial offset.
+	 * @param offset
+	 */
 	public void setInitialOffset(double offset) {
 		mOffset = offset;
 	}
 	
-	public void setSignal(int TIPO_SENAL) {
-		this.TIPO_SENAL = TIPO_SENAL;
+	/**
+	 * Sets the Signal Type.
+	 * @param signalCode - 1 = Sine, 2 = Sawtooth, 3 = Square, 4 = Incrementing Sequence, 5 = EKG, 6 = Pressure.
+	 */
+	public void setSignalType(int signalCode) {
+		CURRENT_SIGNAL = signalCode;
 		n = 0;
 	}
 	
-	public int getCanal() {
-		return mCanal;
+	/**
+	 * Gets the Signal Code.
+	 */
+	public int getSignalCode() {
+		return CURRENT_SIGNAL;
 	}
 	
-	public int getSignal() {
-		return TIPO_SENAL;
-	}
-	
+	/**
+	 * Gets the Signal Frequency.
+	 */
 	public double getF0() {
 		return mF0;
 	}
 	
+	/**
+	 * Gets the Signal Offset.
+	 */
 	public double getOffset() {
 		return mOffset;
 	}
 	
+	/**
+	 * Gets the Signal Amplitude.
+	 */
 	public double getAmplitude() {
 		return mA;
 	}
 
-}
+}// AdcChannel

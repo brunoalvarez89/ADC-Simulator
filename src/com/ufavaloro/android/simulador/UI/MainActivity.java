@@ -336,7 +336,6 @@ public class MainActivity extends ActionBarActivity {
 	}
 
 	private void startAdcSimulator() {
-		mAdcSimulator.setOnline(true);
 		mAdcSimulator.setRunning(true);
 		mAdcSimulator.start();
 	}
@@ -531,7 +530,6 @@ public class MainActivity extends ActionBarActivity {
 			@Override
 			public void onClick(View v) {	
 				mBluetoothConnection.stop();
-				mAdcSimulator.setOnline(false);
 				mAdcSimulator.onResume();
 				setButtonConnnect();
 			}
@@ -573,7 +571,7 @@ public class MainActivity extends ActionBarActivity {
 					int f0 = (int) selectedChannel.getF0();
 					mSeekBarF0.setProgress(f0);
 					
-					int signal = selectedChannel.getSignal();
+					int signal = selectedChannel.getSignalCode();
 					mSpinnerSignal.setSelection(signal - 1, true);
 				}
 			}
@@ -596,7 +594,7 @@ public class MainActivity extends ActionBarActivity {
 				
 				if(mAdcSimulator != null) {
 					AdcChannel selectedChannel = mAdcSimulator.getChannel(mSelectedChannel);
-					selectedChannel.setSignal(mSelectedSignal);
+					selectedChannel.setSignalType(mSelectedSignal);
 				}
 			}
 
