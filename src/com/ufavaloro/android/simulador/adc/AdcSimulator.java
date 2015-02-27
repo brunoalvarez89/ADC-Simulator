@@ -9,7 +9,7 @@ public class AdcSimulator extends Thread {
 	// Handler to Invoking Activity
 	private Handler mHandler;
 	// Valor de la muestra en short int
-	private short[] mMuestras;
+	private short[] mSamples;
 	// Lock de pausa
 	private Object mPauseLock = new Object();
 	// Flag de pausa
@@ -25,7 +25,7 @@ public class AdcSimulator extends Thread {
 	public AdcSimulator(Handler mHandler, int mCantCanales, int mCantMuestras, double mFs, int mBits) {
 		this.mHandler = mHandler;
 		this.mTotalChannels = mCantCanales;
-		mMuestras = new short[mCantMuestras];
+		mSamples = new short[mCantMuestras];
 		
 		for(int i = 0; i < mCantCanales; i++) {
 			AdcChannel canal = new AdcChannel(mFs, mBits, mCantMuestras);
@@ -37,9 +37,9 @@ public class AdcSimulator extends Thread {
 	@Override
 	public void run() {
 		while(mRun) {			
-			mMuestras = mChannels.get(mCurrentChannel).getSamples();			
+			mSamples = mChannels.get(mCurrentChannel).getSamples();			
 			mHandler.obtainMessage(AdcSimulatorMessage.MENSAJE_MUESTRA.getValue(), -1, 
-								   mCurrentChannel, mMuestras.clone()).sendToTarget();
+								   mCurrentChannel, mSamples.clone()).sendToTarget();
 			nextChannel();
 			candadoPausa();
 		}
@@ -48,26 +48,6 @@ public class AdcSimulator extends Thread {
 	public void nextChannel() {
 		mCurrentChannel++;
 		if(mCurrentChannel == mTotalChannels) mCurrentChannel = 0;
-	}
-	
-	public void setAmplitud(double amplitud, int canal) {
-		if(canal >= mTotalChannels) return;
-		mChannels.get(canal).setAmplitude(amplitud);
-	}
-	
-	public void setF0(double f0, int canal) {
-		if(canal >= mTotalChannels) return;
-		mChannels.get(canal).setF0(f0);
-	}
-	
-	public void setOffset(double offset, int canal) {
-		if(canal >= mTotalChannels) return;
-		mChannels.get(canal).setOffset(offset);
-	}
-	
-	public void setSenal(int tipo_senal, int canal) {
-		if(canal >= mTotalChannels) return;
-		mChannels.get(canal).setSignalType(tipo_senal);
 	}
 	
 	private void candadoPausa() {
@@ -111,10 +91,4 @@ public class AdcSimulator extends Thread {
 		return mChannels.get(index);
 	}
 	
-
-	public void setInitialOffset(int offset, int channel) {
-		if(channel >= mTotalChannels) return;
-		mChannels.get(channel).setInitialOffset(offset);
-		
-	}
 }

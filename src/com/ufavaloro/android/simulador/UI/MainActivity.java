@@ -70,7 +70,7 @@ public class MainActivity extends ActionBarActivity {
 	// Frecuencia de la señal
 	private double mF0 = 1;
 	// Frecuencia de muestreo
-	private double mFs = 500;
+	private double mFs = 250;
 	// Período de muestreo
 	private double mTs = 1/mFs;
 	// Offset de la señal
@@ -97,7 +97,7 @@ public class MainActivity extends ActionBarActivity {
 	// Adaptador Bluetooth local
 	private BluetoothAdapter mBluetoothAdapter;
 	// Objeto para manejar la conexion
-	private BluetoohService mBluetoothConnection;
+	private BluetoohService mBluetoothService;
 	// Keys recibidas por el Handler
 	private static String mStringDispositivoRemoto;
 	// Dispositivo al cual me conecto
@@ -156,14 +156,14 @@ public class MainActivity extends ActionBarActivity {
 	}
 
 	private void sendControlMessage() {
-		mBluetoothConnection.write(mControlMessage);
+		mBluetoothService.write(mControlMessage);
 	}
 	
 	private void sendChannelQtyMessage() {
 		// Paso cantidad de canales a Byte
 		mMensajeCanales = intToByte(mTotalChannels);
 		// Envio
-		mBluetoothConnection.write(mMensajeCanales);
+		mBluetoothService.write(mMensajeCanales);
 	}
 	
 	private void sendAdcMessage() {
@@ -262,7 +262,7 @@ public class MainActivity extends ActionBarActivity {
 		}
 		
 		// Envío
-		mBluetoothConnection.write(mAdcMessage);
+		mBluetoothService.write(mAdcMessage);
 	}
 	
 	private void sendSamples(short[] samples, int adcChannel) {
@@ -280,12 +280,12 @@ public class MainActivity extends ActionBarActivity {
 				mSamplesMessage[4 + 2*i + j] = (byte)(samples[i] >> (j * 8));
 			}
 		}
-		mBluetoothConnection.write(mSamplesMessage);
+		mBluetoothService.write(mSamplesMessage);
 	}
 	
 	private void sendPackageCount(double packageNumber) {
 		byte[] bytePackageNumber = doubleToByte(packageNumber);
-		mBluetoothConnection.write(bytePackageNumber);
+		mBluetoothService.write(bytePackageNumber);
 	}
 	
 /*****************************************************************************************
@@ -293,7 +293,7 @@ public class MainActivity extends ActionBarActivity {
 *****************************************************************************************/
 	// Handler que va y viene del Thread del Simulador
 	@SuppressLint("HandlerLeak")
-	private final Handler mHandlerSimulador = new Handler() {
+	private final Handler mAdcSimulatorHandler = new Handler() {
 		@Override
 		public void handleMessage(Message msg) {
 			
@@ -307,7 +307,7 @@ public class MainActivity extends ActionBarActivity {
 				int channel = msg.arg2;
 				
 				mPackageCount++;
-				if(mBluetoothConnection != null) {
+				if(mBluetoothService != null) {
 					sendControlMessage();
 					sendSamples(samples, channel);
 					sendPackageCount(mPackageCount);
@@ -325,14 +325,16 @@ public class MainActivity extends ActionBarActivity {
 		mTotalSamples = (int) (mDelayMax / (mTs * mTotalChannels));
 		//mTotalSamples = 4;
 		mSamplesMessage = new byte[mCantBytesCanal + mCantBytesPorMuestra*mTotalSamples];
-		mAdcSimulator = new AdcSimulator(mHandlerSimulador, mTotalChannels, mTotalSamples, mFs, mBits);
+		mAdcSimulator = new AdcSimulator(mAdcSimulatorHandler, mTotalChannels, mTotalSamples, mFs, mBits);
 		
-		for(int i = 0; i < mTotalChannels; i++) {	
-			mAdcSimulator.setAmplitud(1, i);
-			mAdcSimulator.setF0(1, i);
-			mAdcSimulator.setInitialOffset(1, i);
-			mAdcSimulator.setSenal(i+1, i);
-		}	
+		// First Channel: EKG Signal
+		mAdcSimulator.getChannel(0).setSignalType(5);
+		
+		// Second Channel: Pressure Signal
+		mAdcSimulator.getChannel(1).setSignalType(6);
+		
+		// Third Channel: EKG Signal
+		mAdcSimulator.getChannel(2).setSignalType(5);
 	}
 
 	private void startAdcSimulator() {
@@ -358,7 +360,7 @@ public class MainActivity extends ActionBarActivity {
 /*****************************************************************************************
 * Conexión Bluetooth		 														     *
 *****************************************************************************************/
-	private final Handler mHandlerConexionBT = new Handler() {
+	private final Handler mBluetoothServiceHandler = new Handler() {
 		@Override
 		public void handleMessage(Message msg) {
 			
@@ -400,7 +402,7 @@ public class MainActivity extends ActionBarActivity {
 				case MENSAJE_CONEXION_PERDIDA:
 					mTextViewStatus.setText("Conexion perdida.");
 					if(mAdcSimulator != null) stopAdcSimulator();
-					if(mBluetoothConnection != null) stopBluetoothConnection();
+					if(mBluetoothService != null) stopBluetoothConnection();
 					setButtonConnnect();
 					break;
 					
@@ -442,14 +444,14 @@ public class MainActivity extends ActionBarActivity {
 	}
 
 	public void stopBluetoothConnection() {
-		if (mBluetoothConnection != null) mBluetoothConnection.stop();
+		if(mBluetoothService != null) mBluetoothService.stop();
 	}
 
-	private void setupConexion() {
+	private void addConnection() {
 		// Inicializo Adapter Bluetooth
 		mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 		// Instancio conexión
-		mBluetoothConnection = new BluetoohService(mHandlerConexionBT);
+		mBluetoothService = new BluetoohService(mBluetoothServiceHandler);
 	}	
 	
 
@@ -529,7 +531,7 @@ public class MainActivity extends ActionBarActivity {
 			
 			@Override
 			public void onClick(View v) {	
-				mBluetoothConnection.stop();
+				mBluetoothService.stop();
 				mAdcSimulator.onResume();
 				setButtonConnnect();
 			}
@@ -550,6 +552,7 @@ public class MainActivity extends ActionBarActivity {
 	    signals.add("Cuadrada");
 	    signals.add("Secuencia");
 	    signals.add("ECG");
+	    signals.add("Presión");
 	    
 	    ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, signals);
 	    mSpinnerSignal.setAdapter(arrayAdapter);
@@ -580,7 +583,7 @@ public class MainActivity extends ActionBarActivity {
 			public void onNothingSelected(AdapterView<?> arg0) {}
 			
 		});
-	
+
 	}
 	
 	private void setSignalSpinnerListener() {
@@ -685,9 +688,9 @@ public class MainActivity extends ActionBarActivity {
 	public synchronized void onStart() {
 		super.onStart();
 		// Si es la primera vez que ejecuto la Activity, configuro el simulador
-		if(mBluetoothConnection == null) {
+		if(mBluetoothService == null) {
 			setupUI();
-			setupConexion();
+			addConnection();
 		}
 	}
 		
@@ -714,7 +717,7 @@ public class MainActivity extends ActionBarActivity {
 					// Obtengo objeto de tipo BluetoothDevice remoto
 					mDispositivoRemoto = mBluetoothAdapter.getRemoteDevice(mMAC);
 					// Intento conectarme con DispositivoRemoto
-					mBluetoothConnection.soyCliente(mDispositivoRemoto);
+					mBluetoothService.soyCliente(mDispositivoRemoto);
 					// Inicializo TextViews y SeekBars
 					//mSeekBarF0.setProgress((int)mF0);
 					//mSeekBarFs.setProgress((int)mFs);

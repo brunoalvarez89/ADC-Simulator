@@ -105,7 +105,7 @@ public class AdcChannel {
 							  402, 401, 399, 398, 396, 395, 393, 391, 389, 387, 385, 383, 381};
 	// Dog Aortic Pressure Wave (not digitalized, aprox. 50-120 mmHg, Fs: 250 Hz)
 	private final int SIGNAL_PRESSURE = 6;
-	private final double[] mPressureSignal = {70.25506592, 70.37869263, 0.625946040, 69.38970947, 
+	private final double[] mPressureSignal = {70.25506592, 70.37869263, 69.38970947, 
 											  69.88421631, 69.51333618, 69.88421631, 69.63696289, 
 											  68.27713013, 68.89523315, 68.15350342, 68.02987671, 
 											  67.41177368, 67.16455078, 67.53540039, 66.67007446, 
@@ -160,14 +160,9 @@ public class AdcChannel {
 			 								  67.53540039, 67.41177368, 67.28817749, 66.67007446,
 			 								  66.29919434, 66.17556763, 66.42282104, 66.05194092,
 			 								  65.80471802, 66.17556763, 66.42282104, 65.92834473,
-			 								  66.42282104, 65.92834473, 66.42282104, 67.04092407,
-			 								  67.65902710, 68.52438354, 68.77160645, 71.98574829,
-			 								  78.04318237, 85.70770264, 92.13598633, 97.08084106, 
-			 								  102.5201416, 107.3413696, 110.1846619, 113.8932800, 
-			 								  116.3656921, 117.2310486, 118.2200317, 118.7145081,
-			 								  119.8270874, 120.5688171, 120.8160706, 121.3105469, 
-			 								  121.4341736, 122.5467529, 122.5467529, 122.4231262,
-			 								  122.5467529, 122.9176025, 122.5467529};
+			 								  66.42282104, 65.92834473, 66.42282104};
+	private final double mPressureMax = 119.8270874;
+	private final double mPressureMin = 57.76934814;
 	// Current Signal
 	private int CURRENT_SIGNAL;
 	
@@ -235,7 +230,7 @@ public class AdcChannel {
 				
 			case SIGNAL_PRESSURE:
 				if(n == mPressureSignal.length) n = 0;
-				mCurrentSample = (short) (mPressureSignal[n] / mStep);
+				mCurrentSample = (short) ((mPressureSignal[n] - mPressureMin) / ((mPressureMax-mPressureMin)*mStep));
 		}
 			
 		return mCurrentSample;
@@ -280,8 +275,39 @@ public class AdcChannel {
 	 * @param signalCode - 1 = Sine, 2 = Sawtooth, 3 = Square, 4 = Incrementing Sequence, 5 = EKG, 6 = Pressure.
 	 */
 	public void setSignalType(int signalCode) {
+		
 		CURRENT_SIGNAL = signalCode;
 		n = 0;
+		
+		switch(signalCode) {
+			case SIGNAL_SINE:
+				setInitialOffset(1);
+				setF0(1);
+				setAmplitude(1);
+				break;
+		
+			case SIGNAL_SAWTOOTH:
+				setInitialOffset(1);
+				setF0(1);
+				setAmplitude(1);
+				break;
+					
+			case SIGNAL_SQUARE:	
+				setInitialOffset(1);
+				setF0(1);
+				setAmplitude(1);
+				break;
+				
+			case SIGNAL_SEQUENCE:
+				break;
+				
+			case SIGNAL_EKG:
+				break;
+				
+			case SIGNAL_PRESSURE:
+				mStep = 1 / mTotalSteps;
+				break;
+		}
 	}
 	
 	/**
