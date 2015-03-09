@@ -66,7 +66,7 @@ public class MainActivity extends ActionBarActivity {
 * Parámetros del simulador	 														     *
 *****************************************************************************************/
 	// Cantidad de canales
-	private int mTotalChannels = 3;
+	private int mTotalChannels = 1;
 	// Frecuencia de la señal
 	private double mF0 = 1;
 	// Frecuencia de muestreo
@@ -331,10 +331,10 @@ public class MainActivity extends ActionBarActivity {
 		mAdcSimulator.getChannel(0).setSignalType(5);
 		
 		// Second Channel: Pressure Signal
-		mAdcSimulator.getChannel(1).setSignalType(6);
+		//mAdcSimulator.getChannel(1).setSignalType(6);
 		
 		// Third Channel: EKG Signal
-		mAdcSimulator.getChannel(2).setSignalType(5);
+		//mAdcSimulator.getChannel(2).setSignalType(5);
 	}
 
 	private void startAdcSimulator() {
