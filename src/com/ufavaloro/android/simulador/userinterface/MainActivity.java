@@ -1,13 +1,13 @@
-package com.ufavaloro.android.simulador.UI;
+package com.ufavaloro.android.simulador.userinterface;
 
 import java.nio.ByteBuffer;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 
 import com.UF.simulador.R;
-import com.ufavaloro.android.simulador.adc.AdcChannel;
-import com.ufavaloro.android.simulador.adc.AdcSimulator;
-import com.ufavaloro.android.simulador.adc.AdcSimulatorMessage;
+import com.ufavaloro.android.simulador.adcsimulator.AdcChannel;
+import com.ufavaloro.android.simulador.adcsimulator.AdcSimulator;
+import com.ufavaloro.android.simulador.adcsimulator.AdcSimulatorMessage;
 import com.ufavaloro.android.simulador.bluetooth.BluetoohService;
 import com.ufavaloro.android.simulador.bluetooth.BluetoothMessage;
 
@@ -20,6 +20,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.os.SystemClock;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -29,6 +31,7 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.Spinner;
@@ -52,21 +55,29 @@ public class MainActivity extends ActionBarActivity {
 * Interfaz gráfica					 												     *
 *****************************************************************************************/
 	private Button mButtonConnect;
-	private Spinner mSpinnerChannel;
+	private Button mButtonAddChannel;
+	private Button mButtonRemoveChannel;
+	private Spinner mSpinnerChannels;
 	private Spinner mSpinnerSignal;
 	private SeekBar mSeekBarF0;
-	private SeekBar mSeekBarOffset;
 	private TextView mTextViewF0;
-	private TextView mTextViewOffset;
 	protected TextView mTextViewStatus;
-	private int mSelectedChannel;
+	protected TextView mTextViewChannels;
+	protected TextView mTextViewFs;
+	protected EditText mEditTextFs;
+	protected TextView mTextViewTe;
+	protected EditText mEditTextTe;
+	protected TextView mTextViewResolution;
+	protected EditText mEditTextResolution;
+	protected EditText mEditTextSamplesQuantity;
+	protected TextView mTextViewSamplesQuantity;
+	private int mSelectedChannel = -1;
 	private int mSelectedSignal;
+	protected ArrayList<Integer> mChannelList = new ArrayList<Integer>();
 	
 /*****************************************************************************************
 * Parámetros del simulador	 														     *
 *****************************************************************************************/
-	// Cantidad de canales
-	private int mTotalChannels = 3;
 	// Frecuencia de la señal
 	private double mF0 = 1;
 	// Frecuencia de muestreo
@@ -136,7 +147,7 @@ public class MainActivity extends ActionBarActivity {
 	* Mensaje con la cantidad de muestras 											     *
 	*************************************************************************************/
 	// Cantidad de muestras
-	private int mTotalSamples;
+	private int mSamplesQuantity;
 	// Cantidad de bytes que voy a utilizar para cada muestra
 	private int mCantBytesPorMuestra = 2;
 	// Cantidad de bytes para indicar el canal (4 bytes -int- por defecto)
@@ -161,7 +172,7 @@ public class MainActivity extends ActionBarActivity {
 	
 	private void sendChannelQtyMessage() {
 		// Paso cantidad de canales a Byte
-		mMensajeCanales = intToByte(mTotalChannels);
+		mMensajeCanales = intToByte(mChannelList.size());
 		// Envio
 		mBluetoothService.write(mMensajeCanales);
 	}
@@ -169,13 +180,13 @@ public class MainActivity extends ActionBarActivity {
 	private void sendAdcMessage() {
 		// Contenido del paquete de LSB a MSB
 		// 1) Vmax y Vmin de cada canal (2 doubles por canal)
-		int voltageBlock = 2*mTotalChannels*8;
+		int voltageBlock = 2*mChannelList.size()*8;
 		// 2) Amplitudes máximas y mínimas de cada canal (2 doubles por canal)
-		int amplitudeBlock = 2*mTotalChannels*8;
+		int amplitudeBlock = 2*mChannelList.size()*8;
 		// 3) Frecuencia de muestreo de cada canal (1 double por canal)
-		int fsBlock = mTotalChannels*8;
+		int fsBlock = mChannelList.size()*8;
 		// 4) Resolución de cada canal (1 entero por canal)
-		int resolutionBlock = 4*mTotalChannels;
+		int resolutionBlock = 4*mChannelList.size();
 		// 5) Cantidad de muestras por paquete (1 entero)
 		int sampleQtyBlock = 4;
 		// 6) Cantidad de bytes por muestra (1 entero)
@@ -197,7 +208,7 @@ public class MainActivity extends ActionBarActivity {
 		int end = voltageBlock;
 		
 		byte[] voltage = new byte[8];
-		for(int i=0; i<2*mTotalChannels; i++) {
+		for(int i=0; i<2*mChannelList.size(); i++) {
 			double sign = Math.pow(-1, i);
 			voltage = doubleToByte(sign*mMaxVoltage);
 			for(int j=i*8; j<(i+1)*8; j++) {
@@ -210,7 +221,7 @@ public class MainActivity extends ActionBarActivity {
 		end = start + amplitudeBlock;
 		
 		byte[] amplitud = new byte[8];
-		for(int i = 0; i < 2*mTotalChannels; i++) {
+		for(int i = 0; i < 2*mChannelList.size(); i++) {
 			amplitud = doubleToByte(Math.pow(-1, i));
 			for(int j=i*8; j<(i+1)*8; j++) {
 				mAdcMessage[j + start] = amplitud[j-(8*i)];
@@ -222,7 +233,7 @@ public class MainActivity extends ActionBarActivity {
 		end = start + fsBlock;
 		
 		byte[] fs = new byte[8];
-		for(int i=0; i<mTotalChannels; i++) {
+		for(int i=0; i<mChannelList.size(); i++) {
 			fs = doubleToByte(mFs);
 			for(int j=i*8; j<(i+1)*8; j++) {
 				mAdcMessage[j + start] = fs[j-(8*i)];
@@ -234,7 +245,7 @@ public class MainActivity extends ActionBarActivity {
 		end = start + resolutionBlock;
 		
 		byte[] resolucion = new byte[4];
-		for(int i=0; i<mTotalChannels; i++) {
+		for(int i=0; i<mChannelList.size(); i++) {
 			resolucion = intToByte(mBits);
 			for(int j=i*4; j<(i+1)*4; j++) {
 				mAdcMessage[j + start] = resolucion[j-(4*i)];
@@ -246,7 +257,7 @@ public class MainActivity extends ActionBarActivity {
 		end = start + sampleQtyBlock;
 		
 		byte[] muestrasPorPaquete = new byte[4];
-		muestrasPorPaquete = intToByte(mTotalSamples);
+		muestrasPorPaquete = intToByte(mSamplesQuantity);
 		for(int i=start; i<end; i++) {
 			mAdcMessage[i] = muestrasPorPaquete[i-start];
 		}
@@ -275,7 +286,7 @@ public class MainActivity extends ActionBarActivity {
 		mSamplesMessage[3] = canal_byte[3];
 		
 		// Paso las muestras de short a byte (2 bytes por muestra)
-		for(int i = 0; i < mTotalSamples; i++) {
+		for(int i = 0; i < mSamplesQuantity; i++) {
 			for (int j = 0; j < 2; j++) {
 				mSamplesMessage[4 + 2*i + j] = (byte)(samples[i] >> (j * 8));
 			}
@@ -320,21 +331,14 @@ public class MainActivity extends ActionBarActivity {
 			}
 		}
 	};
-
+	
 	private void setupAdcSimulator() {
-		mTotalSamples = (int) (mDelayMax / (mTs * mTotalChannels));
-		//mTotalSamples = 4;
-		mSamplesMessage = new byte[mCantBytesCanal + mCantBytesPorMuestra*mTotalSamples];
-		mAdcSimulator = new AdcSimulator(mAdcSimulatorHandler, mTotalChannels, mTotalSamples, mFs, mBits);
+		mSamplesMessage = new byte[mCantBytesCanal + mCantBytesPorMuestra*mSamplesQuantity];
+		mAdcSimulator = new AdcSimulator(mAdcSimulatorHandler, mChannelList.size(), mSamplesQuantity, mFs, mBits);
 		
-		// First Channel: EKG Signal
-		mAdcSimulator.getChannel(0).setSignalType(5);
-		
-		// Second Channel: Pressure Signal
-		mAdcSimulator.getChannel(1).setSignalType(6);
-		
-		// Third Channel: EKG Signal
-		mAdcSimulator.getChannel(2).setSignalType(5);
+		for(int i = 0; i < mChannelList.size(); i++) {
+			mAdcSimulator.getChannel(i).setSignalType(mChannelList.get(i));
+		}
 	}
 
 	private void startAdcSimulator() {
@@ -356,6 +360,13 @@ public class MainActivity extends ActionBarActivity {
 		}
 	}
 
+	private double calculateSamplesQuantity() {
+		if(mTs != 0 || mChannelList.size() != 0) {
+			return (mDelayMax / (mTs * mChannelList.size()));
+		} else {
+			return 0;
+		}
+	}
 
 /*****************************************************************************************
 * Conexión Bluetooth		 														     *
@@ -375,6 +386,8 @@ public class MainActivity extends ActionBarActivity {
 			
 				// Me conecte
 				case MENSAJE_CONECTADO: 
+					
+					disableUiElements();
 					
 					setupAdcSimulator();
 					setupControlMessage();
@@ -400,6 +413,7 @@ public class MainActivity extends ActionBarActivity {
 			
 				// Perdi la conexion
 				case MENSAJE_CONEXION_PERDIDA:
+					enableUiElements();
 					mTextViewStatus.setText("Conexion perdida.");
 					if(mAdcSimulator != null) stopAdcSimulator();
 					if(mBluetoothService != null) stopBluetoothConnection();
@@ -473,42 +487,65 @@ public class MainActivity extends ActionBarActivity {
 * Interfaz gráfica																	     *
 *****************************************************************************************/
 	private void setupUI() {
-		// Inflo ButtonConectar
-		mButtonConnect = (Button) findViewById(R.id.buttonConectar);
 		
 		// Inflo SpinnerCanales
-		mSpinnerChannel = (Spinner) findViewById(R.id.spinnerCanales);
+		mSpinnerChannels = (Spinner) findViewById(R.id.spinnerCanales);
 		setChannelSpinnerListener();
-		populateChannelSpinner();
+		populateChannelsSpinner();
 		
 		// Inflo SpinnerSenales
 		mSpinnerSignal = (Spinner) findViewById(R.id.spinnerSenales);
 		setSignalSpinnerListener();
 		populateSignalSpinner();
-	
+
+		// Inflo SeekBarF0
+		mTextViewF0 = (TextView) findViewById(R.id.textViewF0);
+		mSeekBarF0 = (SeekBar) findViewById(R.id.seekBarF0);
+		setSeekBarF0Listener();
+		
+		// Inflo EditTextSamplesQuantity
+		mEditTextSamplesQuantity = (EditText) findViewById(R.id.editTextSamplesQuantity);
+		mEditTextSamplesQuantity.setEnabled(false);
+		
+		// Inflo EditTextFs
+		mEditTextFs = (EditText) findViewById(R.id.editTextFs);
+		setEditTextFsListener();
+		mTextViewFs = (TextView) findViewById(R.id.textViewFs);
+		
+		
+		// Inflo EditTextResolution
+		mEditTextResolution = (EditText) findViewById(R.id.editTextResolution);
+		setEditTextResolutionListener();
+		mTextViewResolution = (TextView) findViewById(R.id.textViewResolution);
+		
+		// Inflo EditTextTe
+		mEditTextTe = (EditText) findViewById(R.id.editTextTe);
+		setEditTextTeListener();
+		mTextViewTe = (TextView) findViewById(R.id.textViewTe);
+
 		// Inflo TextViewEstado
 		mTextViewStatus = (TextView) findViewById(R.id.textViewEstado);
+	
+		// Inflo TextViewChannels
+		mTextViewChannels = (TextView) findViewById(R.id.textViewChannels);	
 		
-		// Inflo TextViewF0
-		mTextViewF0 = (TextView) findViewById(R.id.textViewF0);
-		
-		// Inflo TextViewBits
-		mTextViewOffset = (TextView) findViewById(R.id.textViewOffset);
-		
-		// Inflo SeekBarF0
-		mSeekBarF0 = (SeekBar) findViewById(R.id.seekBarF0);
-		
-		// Inflo SeekBarOffset
-		mSeekBarOffset = (SeekBar) findViewById(R.id.seekBarOffset);
-
-		// Seteo botón de conexión
+		// Inflo ButtonConectar
+		mButtonConnect = (Button) findViewById(R.id.buttonConectar);
 		setButtonConnnect();
 		
-		// Seteo Listener SeekBarF0
-		setSeekBarF0Listener();
-           
-		// Seteo Listener SeekBarOffset
-		setSeekBarOffsetListener();
+		// Inflo ButtonAddChannel
+		mButtonAddChannel = (Button) findViewById(R.id.buttonAddChannel);
+		setButtonAddChannelListener();
+		
+		// Inflo ButtonRemoveChannel
+		mButtonRemoveChannel = (Button) findViewById(R.id.buttonRemoveChannel);
+		setButtonRemoveChannelListener();
+		
+		mEditTextTe.setText("100");
+		mEditTextResolution.setText("12");
+		mEditTextFs.setText("500");
+		mButtonAddChannel.performClick();
+	
 	}
 	
 	// mButtonConectar = Conectar
@@ -517,9 +554,13 @@ public class MainActivity extends ActionBarActivity {
 		mButtonConnect.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				Intent intent = new Intent(getApplicationContext(), RemoteDeviceActivity.class);
-				intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-				startActivityForResult(intent, REQUEST_CODE_ELEGIR_DISPOSITIVO);
+				if(mChannelList.size() == 0)  {
+					Toast.makeText(getApplicationContext(), "Por favor, agregue al menos un canal.", Toast.LENGTH_LONG).show();
+				} else {
+					Intent intent = new Intent(getApplicationContext(), RemoteDeviceActivity.class);
+					intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+					startActivityForResult(intent, REQUEST_CODE_ELEGIR_DISPOSITIVO);
+				}
 			}
 		});
 	}
@@ -538,11 +579,98 @@ public class MainActivity extends ActionBarActivity {
 		});
 	}
 	
-	private void populateChannelSpinner() {
+	private void setButtonAddChannelListener() {
+		mButtonAddChannel.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				mChannelList.add(5);
+				populateChannelsSpinner();
+				mTextViewChannels.setText("Canales (" + mChannelList.size() + ")");
+				mSamplesQuantity = (int) calculateSamplesQuantity();
+				mEditTextSamplesQuantity.setText(String.valueOf(mSamplesQuantity));
+			}
+		});
+	}
+	
+	private void setButtonRemoveChannelListener() {
+		mButtonRemoveChannel.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				if(mChannelList.size() > 1) {
+					mChannelList.remove(mChannelList.size()-1);
+					populateChannelsSpinner();	
+					mTextViewChannels.setText("Canales (" + mChannelList.size() + ")");
+					mSamplesQuantity = (int) calculateSamplesQuantity();
+					mEditTextSamplesQuantity.setText(String.valueOf(mSamplesQuantity));
+				}
+			}
+		});
+	}
+	
+	private void setEditTextFsListener() {
+		mEditTextFs.addTextChangedListener(new TextWatcher() {
+
+			@Override
+			public void afterTextChanged(Editable text) {
+				if(String.valueOf(text).isEmpty()) return;
+				mFs = Double.parseDouble(String.valueOf(text));
+				mTs = 1 / mFs;
+				mSamplesQuantity = (int) calculateSamplesQuantity();
+				mEditTextSamplesQuantity.setText(String.valueOf(mSamplesQuantity));
+			}
+
+			@Override
+			public void beforeTextChanged(CharSequence arg0, int arg1,int arg2, int arg3) {}
+
+			@Override
+			public void onTextChanged(CharSequence arg0, int arg1, int arg2, int arg3) {}
+			
+		});
+	}
+	
+	private void setEditTextResolutionListener() {
+		mEditTextResolution.addTextChangedListener(new TextWatcher() {
+
+			@Override
+			public void afterTextChanged(Editable text) {
+				if(String.valueOf(text).isEmpty()) return;
+				mBits = Integer.parseInt(String.valueOf(text));
+			}
+
+			@Override
+			public void beforeTextChanged(CharSequence arg0, int arg1,int arg2, int arg3) {}
+
+			@Override
+			public void onTextChanged(CharSequence arg0, int arg1, int arg2, int arg3) {}
+			
+		});
+	}
+	
+	private void setEditTextTeListener() {
+		mEditTextTe.addTextChangedListener(new TextWatcher() {
+
+			@Override
+			public void afterTextChanged(Editable text) {
+				if(String.valueOf(text).isEmpty()) return;
+				mDelayMax = Double.parseDouble(String.valueOf(text)) / 1000;
+				mSamplesQuantity = (int) calculateSamplesQuantity();
+				mEditTextSamplesQuantity.setText(String.valueOf(mSamplesQuantity));
+			}
+
+			@Override
+			public void beforeTextChanged(CharSequence arg0, int arg1,int arg2, int arg3) {}
+
+			@Override
+			public void onTextChanged(CharSequence arg0, int arg1, int arg2, int arg3) {}
+			
+		});
+	}
+	
+	private void populateChannelsSpinner() {
 		ArrayList<String> channels = new ArrayList<String>();
-		for (int i = 0; i < mTotalChannels; i++) channels.add(Integer.toString(i+1));
+		for (int i = 0; i < mChannelList.size(); i++) channels.add(Integer.toString(i+1));
 		ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, channels);
-	    mSpinnerChannel.setAdapter(arrayAdapter); 
+	    mSpinnerChannels.setAdapter(arrayAdapter); 
 	}
 	
 	private void populateSignalSpinner() {
@@ -559,7 +687,7 @@ public class MainActivity extends ActionBarActivity {
 	}
 	
 	private void setChannelSpinnerListener() {
-		mSpinnerChannel.setOnItemSelectedListener(new OnItemSelectedListener() {
+		mSpinnerChannels.setOnItemSelectedListener(new OnItemSelectedListener() {
 			
 			@Override
 			public void onItemSelected(AdapterView<?> arg0, View arg1, int arg2, long arg3) {			
@@ -567,15 +695,56 @@ public class MainActivity extends ActionBarActivity {
 				
 				if(mAdcSimulator != null) {
 					AdcChannel selectedChannel = mAdcSimulator.getChannel(mSelectedChannel);
+
+					int signalCode = selectedChannel.getSignalCode();
 					
-					int offset = (int) (selectedChannel.getOffset() + 99);
-					mSeekBarOffset.setProgress(offset);
+					switch(signalCode) {
+						
+						// Sine
+						case 1:
+							mSeekBarF0.setEnabled(true);
+							mTextViewF0.setText("Frecuencia de la Señal");
+							break;
+						
+						// Sawtooth
+						case 2:
+							mSeekBarF0.setEnabled(true);
+							mTextViewF0.setText("Frecuencia de la Señal");
+							break;
+						
+						// Square
+						case 3:
+							mSeekBarF0.setEnabled(true);
+							mTextViewF0.setText("Frecuencia de la Señal");
+							break;
+						
+						// Sequence
+						case 4:
+							mSeekBarF0.setEnabled(false);
+							mTextViewF0.setText("-");
+							break;
+						
+						// EKG
+						case 5:
+							mSeekBarF0.setEnabled(true);
+							mTextViewF0.setText("Frecuencia Cardíaca");
+							break;
+							
+						// Pressure
+						case 6:
+							mSeekBarF0.setEnabled(false);
+							mTextViewF0.setText("-");
+							break;
+					}
 					
+					mSpinnerSignal.setSelection(signalCode - 1, true);
+
 					int f0 = (int) selectedChannel.getF0();
 					mSeekBarF0.setProgress(f0);
 					
-					int signal = selectedChannel.getSignalCode();
-					mSpinnerSignal.setSelection(signal - 1, true);
+				} else {
+					int signal = mChannelList.get(mSelectedChannel);
+					mSpinnerSignal.setSelection(signal-1, true);
 				}
 			}
 
@@ -587,18 +756,57 @@ public class MainActivity extends ActionBarActivity {
 	}
 	
 	private void setSignalSpinnerListener() {
-		
 		mSpinnerSignal.setOnItemSelectedListener(new OnItemSelectedListener() {
-			
 			@Override
 			public void onItemSelected(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
-
 				mSelectedSignal = arg2 + 1;
-				
-				if(mAdcSimulator != null) {
-					AdcChannel selectedChannel = mAdcSimulator.getChannel(mSelectedChannel);
-					selectedChannel.setSignalType(mSelectedSignal);
+				if(mSelectedChannel < mChannelList.size() && mSelectedChannel != -1) { 
+					mChannelList.set(mSelectedChannel, mSelectedSignal);
 				}
+				
+				switch(mSelectedSignal) {
+				
+					// Sine
+					case 1:
+						mSeekBarF0.setMax(20);
+						mSeekBarF0.setEnabled(true);
+						mTextViewF0.setText("Frecuencia de la Señal");
+						break;
+					
+					// Sawtooth
+					case 2:
+						mSeekBarF0.setMax(20);
+						mSeekBarF0.setEnabled(true);
+						mTextViewF0.setText("Frecuencia de la Señal");
+						break;
+					
+					// Square
+					case 3:
+						mSeekBarF0.setMax(20);
+						mSeekBarF0.setEnabled(true);
+						mTextViewF0.setText("Frecuencia de la Señal");
+						break;
+					
+					// Sequence
+					case 4:
+						mSeekBarF0.setEnabled(false);
+						mTextViewF0.setText("-");
+						break;
+					
+					// EKG
+					case 5:
+						mSeekBarF0.setMax(100);
+						mSeekBarF0.setEnabled(true);
+						mTextViewF0.setText("Frecuencia Cardíaca");
+						break;
+						
+					// Pressure
+					case 6:
+						mSeekBarF0.setEnabled(false);
+						mTextViewF0.setText("-");
+						break;
+				}
+			
 			}
 
 			@Override
@@ -610,15 +818,58 @@ public class MainActivity extends ActionBarActivity {
 	}
 
 	private void setSeekBarF0Listener() {
-		
 		mSeekBarF0.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {	
             
 			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 
 				if(mAdcSimulator != null) { 
                 	AdcChannel selectedChannel = mAdcSimulator.getChannel(mSelectedChannel);
-                	selectedChannel.setF0((double)progress);
-                	mTextViewF0.setText("Frecuencia de la Señal (Hz): " + selectedChannel.getF0());
+                	int signalCode = selectedChannel.getSignalCode();
+                	
+                	switch(signalCode) {
+					
+						// Sine
+						case 1:
+							mSeekBarF0.setMax(20);
+							selectedChannel.setF0((double)progress);
+		                	mTextViewF0.setText("Frecuencia de la Señal (Hz): " + selectedChannel.getF0());
+		                	break;
+						
+						// Sawtooth
+						case 2:
+							mSeekBarF0.setMax(20);
+							selectedChannel.setF0((double)progress);
+		                	mTextViewF0.setText("Frecuencia de la Señal (Hz): " + selectedChannel.getF0());
+							break;
+						
+						// Square
+						case 3:
+							mSeekBarF0.setMax(20);
+							selectedChannel.setF0((double)progress);
+		                	mTextViewF0.setText("Frecuencia de la Señal (Hz): " + selectedChannel.getF0());
+							break;
+						
+						// Sequence
+						case 4:
+							break;
+						
+						// EKG
+						case 5:
+							mSeekBarF0.setMax(240);
+							// CF(mDelay) = [mDelay * (EkgSignal.length() / SamplesQuantity)]^-1
+							// mDelay(CF)= [CF * (EkgSignal.length/SamplesQuantity)]^-1
+							double CF = ((double) progress+1) / 60;
+							int signalLength = selectedChannel.getEkgSignal().length;
+							double delay = (1 / (CF * signalLength / mSamplesQuantity))*1000;
+							mTextViewF0.setText("Frecuencia Cardíaca: " + (double)(CF*60) + " LPM");
+							selectedChannel.setDelay(delay);
+							break;
+							
+						// Pressure
+						case 6:
+							break;
+                	}
+                	
                 }
 				
             }
@@ -628,42 +879,32 @@ public class MainActivity extends ActionBarActivity {
 			public void onStopTrackingTouch(SeekBar seekBar) {}
         
 		});
-
 	}
 	
-	private void setSeekBarOffsetListener() {
-		
-		mSeekBarOffset.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
-			
-			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                
-				if(mAdcSimulator != null) {
-					
-					AdcChannel selectedChannel = mAdcSimulator.getChannel(mSelectedChannel);
-                	selectedChannel.setOffset((progress - 99));
-                	
-                	// Actualizo Label de Zoom X
-    				DecimalFormat df = new DecimalFormat();
-    				df.setMaximumFractionDigits(1);
-    				
-    				double newOffset = selectedChannel.getOffset() - selectedChannel.getAmplitude();
-    				df.format(newOffset);
-    				
-                	mTextViewOffset.setText("Offset: " + df.format(newOffset));
-                
-				}
-				
-            }
-            
-			public void onStartTrackingTouch(SeekBar seekBar) {}
-            
-			public void onStopTrackingTouch(SeekBar seekBar) {}
-       
-		});
-	
+	private void disableUiElements() {
+		mButtonAddChannel.setEnabled(false);
+		mButtonRemoveChannel.setEnabled(false);
+		mSpinnerSignal.setEnabled(false);
+		mTextViewFs.setEnabled(false);
+		mEditTextFs.setEnabled(false);
+		mTextViewTe.setEnabled(false);
+		mEditTextTe.setEnabled(false);
+		mTextViewResolution.setEnabled(false);
+		mEditTextResolution.setEnabled(false);
 	}
-
-
+	
+	private void enableUiElements() {
+		mButtonAddChannel.setEnabled(true);
+		mButtonRemoveChannel.setEnabled(true);
+		mSpinnerSignal.setEnabled(true);
+		mTextViewFs.setEnabled(true);
+		mEditTextFs.setEnabled(true);
+		mTextViewTe.setEnabled(true);
+		mEditTextTe.setEnabled(true);
+		mTextViewResolution.setEnabled(true);
+		mEditTextResolution.setEnabled(true);
+	}
+	
 /*****************************************************************************************
 * Ciclo de vida de la activity														     *
 *****************************************************************************************/
@@ -729,8 +970,6 @@ public class MainActivity extends ActionBarActivity {
 			}
 			// Si la seleccion de dispositivo no fue exitosa
 			if(resultCode == RESULT_CANCELED) {
-				// Termino con la Activity
-				Toast.makeText(this, "Por favor, seleccione un dispositivo.", Toast.LENGTH_LONG).show();;
 			}
         }	
     }

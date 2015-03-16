@@ -1,4 +1,4 @@
-package com.ufavaloro.android.simulador.UI;
+package com.ufavaloro.android.simulador.userinterface;
 
 import java.util.Set;
 

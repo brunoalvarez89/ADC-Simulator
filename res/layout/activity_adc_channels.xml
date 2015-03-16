@@ -6,7 +6,7 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="com.ufavaloro.android.simulador.UI.AdcChannelsActivity" >
+    tools:context="com.ufavaloro.android.simulador.userinterface.AdcChannelsActivity" >
 
     <TextView
         android:id="@+id/textView1"
@@ -32,7 +32,7 @@
         android:text="Resolución" />
 
     <Spinner
-        android:id="@+id/spinner2"
+        android:id="@+id/channelQuantitySpinner"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignLeft="@+id/textView2"

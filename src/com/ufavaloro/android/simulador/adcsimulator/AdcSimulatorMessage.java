@@ -1,4 +1,4 @@
-package com.ufavaloro.android.simulador.adc;
+package com.ufavaloro.android.simulador.adcsimulator;
 
 public enum AdcSimulatorMessage {
 

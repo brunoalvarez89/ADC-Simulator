@@ -18,7 +18,7 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
-            android:name="com.ufavaloro.android.simulador.UI.MainActivity"
+            android:name="com.ufavaloro.android.simulador.userinterface.MainActivity"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -27,11 +27,11 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.ufavaloro.android.simulador.UI.RemoteDeviceActivity"
+            android:name="com.ufavaloro.android.simulador.userinterface.RemoteDeviceActivity"
             android:label="@string/app_name" >
         </activity>
         <activity
-            android:name="com.ufavaloro.android.simulador.UI.AdcChannelsActivity"
+            android:name="com.ufavaloro.android.simulador.userinterface.AdcChannelsActivity"
             android:label="@string/title_activity_adc_channels" >
         </activity>
     </application>

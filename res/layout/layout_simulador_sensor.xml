@@ -15,20 +15,113 @@
             android:layout_height="wrap_content"
             android:text="Conectar" />
 
-        <TextView
-            android:id="@+id/textViewEstado"
-            android:layout_width="wrap_content"
+    </LinearLayout>
+    
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal" 
+        android:baselineAligned="false">
+
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:text="Esperando..." />
+            android:layout_weight="1"
+            android:orientation="vertical" >
+
+            <TextView
+                android:id="@+id/textViewFs"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="Fs (Hz)" />
+
+            <EditText
+                android:id="@+id/editTextFs"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:inputType="number" >
+
+                <requestFocus android:layout_width="match_parent" />
+
+            </EditText>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" 
+            android:layout_weight="1">
+
+            <TextView
+                android:id="@+id/textViewTe"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="Delay (ms)" />
+
+            <EditText
+                android:id="@+id/editTextTe"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                android:layout_gravity="center" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" 
+            android:layout_weight="1">
+
+            <TextView
+                android:id="@+id/textViewResolution"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="Res. (Bits)" />
+
+            <EditText
+                android:id="@+id/editTextResolution"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:inputType="number" />
+
+        </LinearLayout>
+        
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" 
+            android:layout_weight="1">
+
+            <TextView
+                android:id="@+id/textViewSamplesQuantity"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="# Muestras" />
+
+            <EditText
+                android:id="@+id/editTextSamplesQuantity"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:inputType="number" />
+
+        </LinearLayout>
 
     </LinearLayout>
 
     <TextView
-        android:id="@+id/textView3"
+        android:id="@+id/textViewChannels"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Canal" />
+        android:layout_gravity="center"
+        android:text="Canales (0)" />
     
     <LinearLayout
         android:layout_width="match_parent"
@@ -41,6 +134,21 @@
             android:layout_height="wrap_content"
             android:layout_weight="0.51" />
 
+
+        <Button
+            android:id="@+id/buttonRemoveChannel"
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="-" />
+
+        <Button
+            android:id="@+id/buttonAddChannel"
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="+" />
+
     </LinearLayout>
     
     <LinearLayout
@@ -52,6 +160,7 @@
             android:id="@+id/textView4"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_gravity="center"
             android:text="Señal" />
 
         <Spinner
@@ -77,7 +186,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:text="Frecuencia de la Señal (Hz)" />
+            android:text="Frecuencia de la Señal" />
 
         <SeekBar
             android:id="@+id/seekBarF0"
@@ -88,33 +197,20 @@
         
     </LinearLayout>
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical" >
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="right"
-        android:orientation="vertical" >
-        
-        <TextView
-        android:id="@+id/textViewOffset"
+    <TextView
+            android:id="@+id/textView2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text=" "
+            android:textAppearance="?android:attr/textAppearanceSmall" />
+    
+    <TextView
+        android:id="@+id/textViewEstado"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:text="Offset (Muestras/PX)" />
-
-        <SeekBar
-            android:id="@+id/seekBarOffset"
-            android:layout_width="275dp"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:max="200" />
-        
-    </LinearLayout>
+        android:text="Esperando..."
+        android:textAppearance="?android:attr/textAppearanceSmall" />
 
 </LinearLayout>

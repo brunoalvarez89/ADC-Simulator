@@ -1,4 +1,4 @@
-package com.ufavaloro.android.simulador.UI;
+package com.ufavaloro.android.simulador.userinterface;
 
 import com.UF.simulador.R;
 

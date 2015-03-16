@@ -1,4 +1,4 @@
-package com.ufavaloro.android.simulador.adc;
+package com.ufavaloro.android.simulador.adcsimulator;
 
 public class AdcChannel {
 	/**
@@ -41,13 +41,18 @@ public class AdcChannel {
 	 */
 	// Sine
 	private final int SIGNAL_SINE = 1;
+	
 	// Sawtooth
 	private final int SIGNAL_SAWTOOTH = 2;
+	
 	// Square
 	private final int SIGNAL_SQUARE = 3;
+	
 	// Incrementing Sequence
 	private final int SIGNAL_SEQUENCE = 4;
-	// Human EKG (already sampled and digitalized, 0-5v, Res: 16 Bits, Fs: 1 KHZ)
+	
+	// Human EKG Heartbeat
+	// Already sampled and digitalized. 0-5v, 12 Bits, Fs: 1 KHZ, 543 samples
 	private final int SIGNAL_EKG = 5;
 	private final int[] mEkgSignal = {381, 384, 387, 390, 393, 396, 399, 403, 407, 411, 
 			   				  415, 420, 424, 429, 435, 441, 447, 454, 461, 469, 
@@ -102,7 +107,8 @@ public class AdcChannel {
 							  530, 520, 511, 502, 494, 486, 479, 472, 466, 460, 
 							  455, 450, 445, 441, 437, 433, 430, 427, 424, 422, 
 							  419, 417, 415, 413, 412, 410, 408, 407, 405, 404, 
-							  402, 401, 399, 398, 396, 395, 393, 391, 389, 387, 385, 383, 381};
+							  402, 401, 399, 398, 396, 395, 393, 391, 389, 387, 
+							  385, 383, 381};
 	// Dog Aortic Pressure Wave (not digitalized, aprox. 50-120 mmHg, Fs: 250 Hz)
 	private final int SIGNAL_PRESSURE = 6;
 	private final double[] mPressureSignal = {70.25506592, 70.37869263, 69.38970947, 
@@ -187,8 +193,8 @@ public class AdcChannel {
 	 * @return The array of generated samples.
 	 */
 	public short[] getSamples() {	
-		for(int i=0; i<mTotalSamples; i++) mSamples[i] = generateSample();
-		try { Thread.sleep(mDelay); } catch (InterruptedException e1) { e1.printStackTrace(); }
+		for(int i = 0; i < mTotalSamples; i++) mSamples[i] = generateSample();
+		try { Thread.sleep(mDelay); } catch (InterruptedException e1) {}
 		return mSamples;
 	}
 	
@@ -311,6 +317,14 @@ public class AdcChannel {
 	}
 	
 	/**
+	 * Sets the delay time between each batch of samples.
+	 * @param delay (in seconds).
+	 */
+	public void setDelay(double delay) {
+		mDelay = (long) delay;
+	}
+	
+	/**
 	 * Gets the Signal Code.
 	 */
 	public int getSignalCode() {
@@ -338,4 +352,10 @@ public class AdcChannel {
 		return mA;
 	}
 
+	/**
+	 * Gets the Ekg Signal.
+	 */
+	public int[] getEkgSignal() {
+		return mEkgSignal;
+	}
 }// AdcChannel
