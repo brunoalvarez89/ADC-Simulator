@@ -77,7 +77,13 @@ public class MainActivity extends ActionBarActivity {
 	
 /*****************************************************************************************
 * Parámetros del simulador	 														     *
+<<<<<<< HEAD:src/com/ufavaloro/android/simulador/userinterface/MainActivity.java
 *****************************************************************************************/
+=======
+*****************************************************************************************/
+	// Cantidad de canales
+	private int mTotalChannels = 1;
+>>>>>>> 8e82d3b94ab114200994e0c6d120a3a7afa91af8:src/com/ufavaloro/android/simulador/UI/MainActivity.java
 	// Frecuencia de la señal
 	private double mF0 = 1;
 	// Frecuencia de muestreo
@@ -336,9 +342,17 @@ public class MainActivity extends ActionBarActivity {
 		mSamplesMessage = new byte[mCantBytesCanal + mCantBytesPorMuestra*mSamplesQuantity];
 		mAdcSimulator = new AdcSimulator(mAdcSimulatorHandler, mChannelList.size(), mSamplesQuantity, mFs, mBits);
 		
+<<<<<<< HEAD:src/com/ufavaloro/android/simulador/userinterface/MainActivity.java
 		for(int i = 0; i < mChannelList.size(); i++) {
 			mAdcSimulator.getChannel(i).setSignalType(mChannelList.get(i));
 		}
+=======
+		// Second Channel: Pressure Signal
+		//mAdcSimulator.getChannel(1).setSignalType(6);
+		
+		// Third Channel: EKG Signal
+		//mAdcSimulator.getChannel(2).setSignalType(5);
+>>>>>>> 8e82d3b94ab114200994e0c6d120a3a7afa91af8:src/com/ufavaloro/android/simulador/UI/MainActivity.java
 	}
 
 	private void startAdcSimulator() {
