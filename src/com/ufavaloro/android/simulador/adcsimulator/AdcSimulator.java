@@ -28,7 +28,7 @@ public class AdcSimulator extends Thread {
 		mSamples = new short[mCantMuestras];
 		
 		for(int i = 0; i < mCantCanales; i++) {
-			AdcChannel canal = new AdcChannel(mFs, mBits, mCantMuestras);
+			AdcChannel canal = new AdcChannel(mFs, mBits, mCantMuestras, mCantCanales);
 			mChannels.add(canal);
 		}
 	}

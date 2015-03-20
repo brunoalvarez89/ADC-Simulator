@@ -179,13 +179,13 @@ public class AdcChannel {
 	 * @param bits - Resolution.
 	 * @param totalSamples - Amount of samples to generate.
 	 */
-	AdcChannel(double fs, int bits, int totalSamples) {
+	AdcChannel(double fs, int bits, int totalSamples, int totalChannels) {
 		mTs = 1/fs;
 		mBits = bits;
 		mTotalSteps = Math.pow(2, mBits);
 		mTotalSamples = totalSamples;
 		mSamples = new short[totalSamples];
-		mDelay = ((long)(1000*totalSamples/fs));
+		mDelay = ((long)(1000*totalSamples*mTs/totalChannels));
 	}
 	
 	/**
