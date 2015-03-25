@@ -23,6 +23,7 @@ public class AdcChannel {
 	// Delay (in mS) to generate mSamples (it depends on the Sampling Frequency and the
 	// amount of Samples to generate
 	private long mDelay;
+	private double mSampling = 1;
 	
 	/**
 	 * Signal Parameters
@@ -52,9 +53,10 @@ public class AdcChannel {
 	private final int SIGNAL_SEQUENCE = 4;
 	
 	// Human EKG Heartbeat
-	// Already sampled and digitalized. 0-5v, 12 Bits, Fs: 1 KHZ, 543 samples
+	// Already sampled and digitalized. 0-5v, 12 Bits, Fs ~ 500 Hz, 543 samples, 55 bpm 
 	private final int SIGNAL_EKG = 5;
-	private final int[] mEkgSignal = {381, 384, 387, 390, 393, 396, 399, 403, 407, 411, 
+	private CircularBuffer mEkgBuffer;
+	private final short[] mEkgSignal = {381, 384, 387, 390, 393, 396, 399, 403, 407, 411, 
 			   				  415, 420, 424, 429, 435, 441, 447, 454, 461, 469, 
 							  477, 485, 495, 504, 515, 526, 537, 549, 562, 575, 
 							  588, 602, 616, 630, 645, 660, 675, 690, 705, 720, 
@@ -170,7 +172,7 @@ public class AdcChannel {
 	private final double mPressureMax = 119.8270874;
 	private final double mPressureMin = 57.76934814;
 	// Current Signal
-	private int CURRENT_SIGNAL;
+	private int SIGNAL_TYPE;
 	
 	/**
 	 * Constructor.
@@ -206,7 +208,7 @@ public class AdcChannel {
 	private short generateSample() {
 		n++;
 		
-		switch(CURRENT_SIGNAL) {
+		switch(SIGNAL_TYPE) {
 		
 			case SIGNAL_SINE:
 				mCurrentSample = (short) ((mA*Math.sin(2*Math.PI*mF0*n*mTs) + mOffset) / mStep);
@@ -230,8 +232,7 @@ public class AdcChannel {
 				break;
 				
 			case SIGNAL_EKG:
-				if(n == mEkgSignal.length) n = 0;
-				mCurrentSample = (short) mEkgSignal[n];
+				mCurrentSample = mEkgBuffer.getSample((int) (n*mSampling*2));
 				break;
 				
 			case SIGNAL_PRESSURE:
@@ -249,6 +250,10 @@ public class AdcChannel {
 	 */
 	public void setF0(double f0) {
 		mF0 = f0;
+		
+		if(SIGNAL_TYPE == SIGNAL_EKG) {
+			mSampling = f0;
+		}
 	}
 	
 	/**
@@ -282,7 +287,7 @@ public class AdcChannel {
 	 */
 	public void setSignalType(int signalCode) {
 		
-		CURRENT_SIGNAL = signalCode;
+		SIGNAL_TYPE = signalCode;
 		n = 0;
 		
 		switch(signalCode) {
@@ -308,6 +313,7 @@ public class AdcChannel {
 				break;
 				
 			case SIGNAL_EKG:
+				mEkgBuffer = new CircularBuffer(mEkgSignal);
 				break;
 				
 			case SIGNAL_PRESSURE:
@@ -328,7 +334,7 @@ public class AdcChannel {
 	 * Gets the Signal Code.
 	 */
 	public int getSignalCode() {
-		return CURRENT_SIGNAL;
+		return SIGNAL_TYPE;
 	}
 	
 	/**
@@ -355,7 +361,8 @@ public class AdcChannel {
 	/**
 	 * Gets the Ekg Signal.
 	 */
-	public int[] getEkgSignal() {
+	public short[] getEkgSignal() {
 		return mEkgSignal;
 	}
+
 }// AdcChannel

@@ -55,14 +55,14 @@
             android:layout_weight="1">
 
             <TextView
-                android:id="@+id/textViewTe"
+                android:id="@+id/textViewSamplesQuantity"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:text="Delay (ms)" />
+                android:text="# Muestras" />
 
             <EditText
-                android:id="@+id/editTextTe"
+                android:id="@+id/editTextSamplesQuantity"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="number"
@@ -99,14 +99,14 @@
             android:layout_weight="1">
 
             <TextView
-                android:id="@+id/textViewSamplesQuantity"
+                android:id="@+id/textViewTe"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:text="# Muestras" />
+                android:text="Delay (ms)" />
 
             <EditText
-                android:id="@+id/editTextSamplesQuantity"
+                android:id="@+id/editTextTe"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
