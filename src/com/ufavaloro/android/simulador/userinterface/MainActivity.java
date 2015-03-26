@@ -711,30 +711,35 @@ public class MainActivity extends ActionBarActivity {
 						// Sine
 						case 1:
 							mSeekBarF0.setEnabled(true);
+							mSeekBarF0.setProgress((int) selectedChannel.getF0());
 							mTextViewF0.setText("Frecuencia de la Señal");
 							break;
 						
 						// Sawtooth
 						case 2:
 							mSeekBarF0.setEnabled(true);
+							mSeekBarF0.setProgress((int) selectedChannel.getF0());
 							mTextViewF0.setText("Frecuencia de la Señal");
 							break;
 						
 						// Square
 						case 3:
 							mSeekBarF0.setEnabled(true);
+							mSeekBarF0.setProgress((int) selectedChannel.getF0());
 							mTextViewF0.setText("Frecuencia de la Señal");
 							break;
 						
 						// Sequence
 						case 4:
 							mSeekBarF0.setEnabled(false);
+							mSeekBarF0.setProgress((int) selectedChannel.getF0());
 							mTextViewF0.setText("-");
 							break;
 						
 						// EKG
 						case 5:
 							mSeekBarF0.setEnabled(true);
+							mSeekBarF0.setProgress((int) selectedChannel.getF0());
 							mTextViewF0.setText("Frecuencia Cardíaca");
 							break;
 							
@@ -768,6 +773,7 @@ public class MainActivity extends ActionBarActivity {
 			@Override
 			public void onItemSelected(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
 				mSelectedSignal = arg2 + 1;
+				
 				if(mSelectedChannel < mChannelList.size() && mSelectedChannel != -1) { 
 					mChannelList.set(mSelectedChannel, mSelectedSignal);
 				}
@@ -822,7 +828,7 @@ public class MainActivity extends ActionBarActivity {
 			}
 			
 		});
-	
+
 	}
 
 	private void setSeekBarF0Listener() {
@@ -867,10 +873,7 @@ public class MainActivity extends ActionBarActivity {
 							// CF(mDelay) = [mDelay * (EkgSignal.length() / SamplesQuantity)]^-1
 							// mDelay(CF)= [CF * (EkgSignal.length/SamplesQuantity)]^-1
 							double CF = ((double) progress+1) / 60;
-							int signalLength = selectedChannel.getEkgSignal().length;
-							double delay = (1 / (CF * signalLength / mSamplesPerPackage))*1000;
 							mTextViewF0.setText("Frecuencia Cardíaca: " + (double)(CF*60) + " LPM");
-							//selectedChannel.setDelay(delay);
 							selectedChannel.setF0(CF);
 							break;
 							
