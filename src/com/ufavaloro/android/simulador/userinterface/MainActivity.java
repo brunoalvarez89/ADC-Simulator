@@ -874,12 +874,8 @@ public class MainActivity extends ActionBarActivity {
 							// mDelay(CF)= [CF * (EkgSignal.length/SamplesQuantity)]^-1
 							double CF = ((double) progress+1) / 60;
 							mTextViewF0.setText("Frecuencia Cardíaca: " + (double)(CF*60) + " LPM");
-<<<<<<< HEAD
-							selectedChannel.setDelay(delay);
+							selectedChannel.setDelay(CF);
 							//selectedChannel.setF0(CF);
-=======
-							selectedChannel.setF0(CF);
->>>>>>> 1bb63e6c215cae7ce5570509b8cc24ed8e268faf
 							break;
 							
 						// Pressure

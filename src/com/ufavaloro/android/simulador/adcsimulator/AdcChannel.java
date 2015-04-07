@@ -720,14 +720,11 @@ public class AdcChannel {
 				break;
 				
 			case SIGNAL_EKG:
-<<<<<<< HEAD
 				if(n == mEkgSignal.length/4) n = 0;
 				mCurrentSample = mEkgSignal[n*4];
 				//mCurrentSample = mEkgBuffer.getSample((int) (n*mSampling*4));
-=======
 				// 1000*mTs times Sampling to to adjust to current mFs
-				mCurrentSample = mEkgBuffer.getSample((int) (n*mSampling*(1000*mTs)));
->>>>>>> 1bb63e6c215cae7ce5570509b8cc24ed8e268faf
+				//mCurrentSample = mEkgBuffer.getSample((int) (n*mSampling*(1000*mTs)));
 				break;
 				
 			case SIGNAL_PRESSURE:
