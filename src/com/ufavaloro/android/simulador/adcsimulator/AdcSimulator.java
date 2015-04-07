@@ -36,12 +36,14 @@ public class AdcSimulator extends Thread {
 	// Generación de muestras
 	@Override
 	public void run() {
-		while(mRun) {			
-			mSamples = mChannels.get(mCurrentChannel).getSamples();			
-			mHandler.obtainMessage(AdcSimulatorMessage.MENSAJE_MUESTRA.getValue(), -1, 
-								   mCurrentChannel, mSamples.clone()).sendToTarget();
-			nextChannel();
-			candadoPausa();
+		while(mRun) {
+			synchronized(mChannels.get(mCurrentChannel)) {
+				mSamples = mChannels.get(mCurrentChannel).getSamples();			
+				mHandler.obtainMessage(AdcSimulatorMessage.MENSAJE_MUESTRA.getValue(), -1, 
+									   mCurrentChannel, mSamples.clone()).sendToTarget();
+				nextChannel();
+				candadoPausa();
+			}
 		}
 	}
 	

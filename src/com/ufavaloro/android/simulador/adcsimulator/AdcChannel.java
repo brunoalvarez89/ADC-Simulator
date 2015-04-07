@@ -194,7 +194,7 @@ public class AdcChannel {
 	 * Populates the mSamples array and waits mDelay to return it.
 	 * @return The array of generated samples.
 	 */
-	public short[] getSamples() {	
+	public synchronized short[] getSamples() {	
 		for(int i = 0; i < mTotalSamples; i++) mSamples[i] = generateSample();
 		try { Thread.sleep(mDelay); } catch (InterruptedException e1) {}
 		return mSamples;
@@ -205,7 +205,7 @@ public class AdcChannel {
 	 * @return The generated sample.
 	 */
 	// Selector de señal
-	private short generateSample() {
+	private synchronized short generateSample() {
 		n++;
 		
 		switch(SIGNAL_TYPE) {
@@ -232,7 +232,9 @@ public class AdcChannel {
 				break;
 				
 			case SIGNAL_EKG:
-				mCurrentSample = mEkgBuffer.getSample((int) (n*mSampling*2));
+				if(n == mEkgSignal.length/4) n = 0;
+				mCurrentSample = mEkgSignal[n*4];
+				//mCurrentSample = mEkgBuffer.getSample((int) (n*mSampling*4));
 				break;
 				
 			case SIGNAL_PRESSURE:
@@ -327,7 +329,7 @@ public class AdcChannel {
 	 * @param delay (in seconds).
 	 */
 	public void setDelay(double delay) {
-		mDelay = (long) delay;
+		mDelay = (long) delay*4;
 	}
 	
 	/**
