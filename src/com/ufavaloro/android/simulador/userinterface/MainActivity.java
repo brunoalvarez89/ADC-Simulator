@@ -596,7 +596,7 @@ public class MainActivity extends ActionBarActivity {
 		mButtonAddChannel.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				mChannelList.add(5);
+				mChannelList.add(1);
 				populateChannelsSpinner();
 				mTextViewChannels.setText("Canales (" + mChannelList.size() + ")");
 			}
@@ -689,6 +689,7 @@ public class MainActivity extends ActionBarActivity {
 	    signals.add("Secuencia");
 	    signals.add("ECG");
 	    signals.add("Presión");
+	    signals.add("CO2");
 	    
 	    ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, signals);
 	    mSpinnerSignal.setAdapter(arrayAdapter);
@@ -819,6 +820,11 @@ public class MainActivity extends ActionBarActivity {
 						mSeekBarF0.setEnabled(false);
 						mTextViewF0.setText("-");
 						break;
+						
+					// CO2
+					case 7:
+						mSeekBarF0.setEnabled(false);
+						mTextViewF0.setText("-");
 				}
 			
 			}
@@ -880,6 +886,10 @@ public class MainActivity extends ActionBarActivity {
 							
 						// Pressure
 						case 6:
+							break;
+							
+						// CO2
+						case 7:
 							break;
                 	}
                 	
