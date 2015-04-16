@@ -2085,10 +2085,12 @@ public class AdcChannel {
 			case SIGNAL_PRESSURE:
 				if(n == mPressureSignal.length) n = 0;
 				mCurrentSample = (short) ((mPressureSignal[n] - mPressureMin) / ((mPressureMax-mPressureMin)*mStep));
+				break;
 				
 			case SIGNAL_CO2:
 				if(n == mCo2Signal.length) n = 0;
 				mCurrentSample = (short) ((mCo2Signal[n] - mCo2Min) / ((mCo2Max-mCo2Min)*mStep));
+				break;
 		}
 			
 		return mCurrentSample;

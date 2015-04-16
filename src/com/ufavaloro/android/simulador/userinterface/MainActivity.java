@@ -521,7 +521,7 @@ public class MainActivity extends ActionBarActivity {
 		mEditTextTe.setEnabled(false);
 
 		// Inflo EditTextFs
-		mEditTextFs = (EditText) findViewById(R.id.editTextFs);
+ 		mEditTextFs = (EditText) findViewById(R.id.editTextFs);
 		setEditTextFsListener();
 		mTextViewFs = (TextView) findViewById(R.id.textViewFs);
 		
@@ -556,8 +556,17 @@ public class MainActivity extends ActionBarActivity {
 		
 		mEditTextResolution.setText("12");
 		mEditTextFs.setText("250");
-		mEditTextSamplesQuantity.setText("25");
-		mButtonAddChannel.performClick();
+		mEditTextSamplesQuantity.setText("35");
+		
+		mChannelList.add(5);
+		populateChannelsSpinner();
+		mTextViewChannels.setText("Canales (" + mChannelList.size() + ")");
+		mChannelList.add(6);
+		populateChannelsSpinner();
+		mTextViewChannels.setText("Canales (" + mChannelList.size() + ")");
+		mChannelList.add(7);
+		populateChannelsSpinner();
+		mTextViewChannels.setText("Canales (" + mChannelList.size() + ")");
 	
 	}
 	
