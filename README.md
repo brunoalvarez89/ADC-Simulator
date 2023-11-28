@@ -1,7 +1,7 @@
 ADC Simulator
 =========
 
-Simulator is a multi-channel ADC samples generator made for testing [Visu](https://github.com/brunoalvarez89/Visu).
+This is a multi-channel ADC samples generator made for testing [Visu](https://github.com/brunoalvarez89/Visu).
 
 ![Alt text](https://github.com/brunoalvarez89/Simulador/blob/master/Simulador.png)
 
